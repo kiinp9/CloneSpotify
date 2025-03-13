@@ -95,4 +95,10 @@ class UserController {
     }
     return completer.future;
   }
+
+  Future<User?> findUserById(int id, {bool showPass = false}) async {
+    final user = await _userRepository.findUserById(id, showPass: showPass);
+
+    return user;
+  }
 }

@@ -19,7 +19,8 @@ Handler middleware(Handler handler) {
       .use(provider<Database>((context) => database))
       .use(provider<UserRepository>((context) => userRepository))
       .use(provider<UserController>((context) => userController))
-      .use(loggingMiddleware());
+      .use(loggingMiddleware())
+      .use(verifyJwt());
 }
 
 Middleware injectionController() {
@@ -46,27 +47,28 @@ Middleware verifyJwt() {
     return (context) async {
       try {
         final url = context.request.url.toString();
-        if (url.startsWith('user/register') || url.startsWith('user/login')) {
+        if (url.startsWith('auth/register') || url.startsWith('auth/login')) {
           return await handler(context);
         }
-
         final headers = context.request.headers;
         final authInfo = headers['Authorization'];
 
         if (authInfo == null || !authInfo.startsWith('Bearer ')) {
-          return Response(
-              statusCode: HttpStatus.badRequest,
-              body: 'Missing or invalid Authorization header');
+          return Response.json(
+            statusCode: HttpStatus.unauthorized,
+            body: {'message': 'Missing or invalid Authorization header'},
+          );
         }
 
         final token = authInfo.split(' ')[1];
 
-        verifyToken(token);
-
         final userData = decodeToken(token);
+
         if (userData == null) {
-          return Response(
-              statusCode: HttpStatus.unauthorized, body: 'Invalid token');
+          return Response.json(
+            statusCode: HttpStatus.unauthorized,
+            body: {'message': 'Invalid token'},
+          );
         }
 
         final user = User(
@@ -78,10 +80,12 @@ Middleware verifyJwt() {
               : null,
         );
 
-        return await handler(context.provide<User>(() => user));
+        return handler(context.provide<User?>(() => user));
       } catch (e) {
-        return AppResponse().error(HttpStatus.unauthorized,
-            'Token verification failed: ${e.toString()}');
+        return Response.json(
+          statusCode: HttpStatus.unauthorized,
+          body: {'message': 'Token verification failed: ${e.toString()}'},
+        );
       }
     };
   };
