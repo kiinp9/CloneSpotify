@@ -30,14 +30,13 @@ class User {
   GenderE gender;
   DateTime? birthday;
 
-  /// ✅ **Đã sửa lỗi `gender`**
   Map<String, dynamic> toJson() => {
         'id': id,
         'fullName': fullName,
         'userName': userName,
         'email': email,
         'password': password,
-        'gender': gender.name, // ✅ Chỉ lấy giá trị của user hiện tại
+        'gender': gender.name,
         'status': status,
         'roleId': roleId,
         'birthday': birthday?.toIso8601String(),
@@ -45,6 +44,25 @@ class User {
         'updatedAt': updatedAt?.toIso8601String(),
         'role': role?.toJson(),
       };
+  User copyWith({
+    String? fullName,
+    GenderE? gender,
+    DateTime? birthday,
+  }) {
+    return User(
+      id: id,
+      fullName: fullName ?? this.fullName,
+      userName: userName,
+      email: email,
+      gender: gender ?? this.gender,
+      birthday: birthday ?? this.birthday,
+      status: status,
+      roleId: roleId,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      role: role,
+    );
+  }
 
   @override
   String toString() {

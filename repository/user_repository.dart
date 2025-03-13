@@ -15,6 +15,7 @@ abstract class IUserRepo {
   Future<User?> findUserById(int id, {bool showPass = false});
   Future<User?> findUserByEmail(String email, {bool showPass = false});
   Future<User?> findUserByUserName(String userName, {bool showPass = false});
+  Future<User?> updateUser(User user);
 }
 
 class UserRepository implements IUserRepo {
@@ -202,6 +203,75 @@ class UserRepository implements IUserRepo {
                   : null,
             )
           : null,
+    );
+  }
+
+  Future<User?> updateUser(User user, {bool showPass = false}) async {
+    final result = await _db.executor.execute(
+      Sql.named('''
+UPDATE users 
+SET fullName = @fullName, gender = @gender, birthday = @birthday,     updatedAt = NOW() AT TIME ZONE 'UTC' + INTERVAL '7 hours'
+WHERE id = @id
+RETURNING id, fullName, userName, email, password, gender, birthday, status, roleId, createdAt, updatedAt
+'''),
+      parameters: {
+        'id': user.id,
+        'fullName': user.fullName,
+        'gender': user.gender.name,
+        'birthday': user.birthday
+      },
+    );
+
+    if (result.isEmpty) return null;
+
+    final row = result.first;
+
+    final roleResult = await _db.executor.execute(
+      Sql.named('''
+SELECT id, name, description, createdAt, updatedAt 
+FROM roles 
+WHERE id = @roleId
+'''),
+      parameters: {'roleId': row[8]},
+    );
+
+    final role = roleResult.isNotEmpty
+        ? Role(
+            id: roleResult.first[0] as int,
+            name: _decode(roleResult.first[1]),
+            description: _decode(roleResult.first[2]),
+            createdAt: roleResult.first[3] != null
+                ? DateTime.tryParse(roleResult.first[3].toString())
+                : null,
+            updatedAt: roleResult.first[4] != null
+                ? DateTime.tryParse(roleResult.first[4].toString())
+                : null,
+          )
+        : null;
+
+    final genderEnum = row.length > 5 && row[5] != null
+        ? GenderE.values.byName(_decode(row[5]))
+        : GenderE.preferNotToSay;
+
+    return User(
+      id: row[0] as int,
+      fullName: _decode(row[1]),
+      userName: _decode(row[2]),
+      email: _decode(row[3]),
+      password: showPass ? _decode(row[4]) : '',
+      gender: genderEnum,
+      birthday: row.length > 6 && row[6] != null
+          ? DateTime.tryParse(row[6].toString())
+          : null,
+      status: row.length > 7 ? row[7] as int? : null,
+      roleId: row.length > 8 ? row[8] as int? : null,
+      createdAt: row.length > 9 && row[9] != null
+          ? DateTime.tryParse(row[9].toString())
+          : null,
+      updatedAt: row.length > 10 && row[10] != null
+          ? DateTime.parse(row[10].toString()).toUtc()
+          : null,
+      role: role,
     );
   }
 

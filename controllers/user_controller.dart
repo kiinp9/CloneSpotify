@@ -101,4 +101,9 @@ class UserController {
 
     return user;
   }
+
+  Future<User?> updateUser(User user) async {
+    final updatedUser = await _userRepository.updateUser(user);
+    return updatedUser;
+  }
 }
