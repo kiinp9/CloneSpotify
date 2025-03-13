@@ -1,0 +1,98 @@
+import 'dart:async';
+import 'dart:io';
+import '../constant/config.message.dart';
+import '../model/users.dart';
+import '../validate/email.dart';
+import '../validate/password.dart';
+import '../repository/user_repository.dart';
+import '../exception/config.exception.dart';
+import '../validate/strings.dart';
+import '../exception/general.exception.dart';
+import '../security/password.security.dart';
+import '../security/jwt.security.dart';
+
+class UserController {
+  UserController(this._userRepository);
+  final UserRepository _userRepository;
+  Future<User> Login(String? identifier, String password) async {
+    if (isNullOrEmpty(identifier)) {
+      return Future.error(HttpException(
+          ErrorMessage.EMAIL_OR_USERNAME_REQUIRED, HttpStatus.badRequest));
+    }
+
+    if (isNullOrEmpty(password)) {
+      return Future.error(
+          HttpException(ErrorMessage.PASSWORD_REQUIRED, HttpStatus.badRequest));
+    }
+
+    if (!isValidPassword(password)) {
+      return Future.error(HttpException(
+          ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH, HttpStatus.badRequest));
+    }
+
+    try {
+      User? userDb;
+
+      if (isValidEmail(identifier)) {
+        userDb =
+            await _userRepository.findUserByEmail(identifier!, showPass: true);
+      } else {
+        userDb = await _userRepository.findUserByUserName(identifier!,
+            showPass: true);
+      }
+
+      if (userDb == null || userDb.password == null) {
+        return Future.error(
+            HttpException(ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound));
+      }
+
+      // Kiểm tra mật khẩu nhập vào với mật khẩu hash
+      if (verifyPassword(password, userDb.password!)) {
+        final token = generateTokenJwt(userDb);
+        return Future.value(userDb);
+      } else {
+        return Future.error(HttpException(
+            ErrorMessage.PASSWORD_INCORRECT, HttpStatus.badRequest));
+      }
+    } catch (e) {
+      return Future.error(e);
+    }
+  }
+
+  Future<User> Register(User user) async {
+    final completer = Completer<User>();
+    final errMsgList = <String>[];
+
+    if (!isValidEmail(user.email)) {
+      errMsgList.add(ErrorMessage.EMAIL_INVALID);
+    }
+    if (isNullOrEmpty(user.fullName)) {
+      errMsgList.add(ErrorMessage.FULL_NAME_REQUIRED);
+    }
+    if (isNullOrEmpty(user.password)) {
+      errMsgList.add(ErrorMessage.PASSWORD_REQUIRED);
+    }
+    if (!isValidPassword(user.password)) {
+      errMsgList.add(ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH);
+    }
+
+    if (errMsgList.isNotEmpty) {
+      final errors = errMsgList.join(',');
+      completer.completeError(GeneralException(errors));
+      return completer.future;
+    }
+
+    user.password = genPassword(user.password!);
+    final result = await _userRepository.saveUser(user);
+    if (result > 0) {
+      if (user.email == null) {
+        throw Exception('Email không được để trống');
+      }
+      final userDb = await _userRepository.findUserByEmail(user.email!);
+
+      final token = generateTokenJwt(userDb!);
+      completer.complete(userDb);
+    }
+    return completer.future;
+  }
+}
