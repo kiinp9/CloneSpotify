@@ -15,18 +15,15 @@ Future<Response> onRequest(RequestContext context) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
 
-  // Lấy user từ middleware
   final user = context.read<User?>();
   if (user == null) {
     return AppResponse().error(HttpStatus.unauthorized, 'User not found.');
   }
 
   try {
-    // Lấy body request
     final body = await context.request.body();
     final data = jsonDecode(body);
 
-    // Tạo user mới với dữ liệu cập nhật
     final updatedUser = user.copyWith(
       fullName: data['fullName'] as String?,
       gender: data['gender'] != null
@@ -37,7 +34,6 @@ Future<Response> onRequest(RequestContext context) async {
           : user.birthday,
     );
 
-    // Gọi UserController để cập nhật user
     final userController = context.read<UserController>();
     final result = await userController.updateUser(updatedUser);
 
