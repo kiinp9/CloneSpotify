@@ -38,7 +38,7 @@ Map<String, dynamic>? decodeToken(String token) {
       'exp': jwt.payload['exp'],
     };
   } catch (e) {
-    throw const HttpException(
+    throw const CustomHttpException(
         ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
   }
 }
@@ -48,7 +48,7 @@ AppException? verifyToken(String token) {
     JWT.verify(token, SecretKey(JwtConfig.secretKey));
     return null;
   } catch (e) {
-    throw const HttpException(
+    throw const CustomHttpException(
         ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
   }
 }

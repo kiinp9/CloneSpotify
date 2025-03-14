@@ -3,6 +3,7 @@ import 'package:dart_frog/dart_frog.dart';
 import '../../constant/config.constant.dart';
 import '../../constant/config.message.dart';
 import '../../controllers/user_controller.dart';
+import '../../exception/config.exception.dart';
 import '../../model/response.dart';
 import '../../model/users.dart';
 import '../../security/jwt.security.dart';
@@ -38,6 +39,10 @@ Future<Response> onRequest(RequestContext context) async {
       'token': token,
     });
   } catch (e) {
+    if (e is CustomHttpException) {
+      return AppResponse().error(e.statusCode, e.message);
+    }
+
     return AppResponse().error(HttpStatus.internalServerError, e.toString());
   }
 }

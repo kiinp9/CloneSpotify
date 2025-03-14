@@ -15,24 +15,21 @@ class UserController {
   UserController(this._userRepository);
   final UserRepository _userRepository;
   Future<User> Login(String? identifier, String password) async {
-    if (isNullOrEmpty(identifier)) {
-      return Future.error(HttpException(
-          ErrorMessage.EMAIL_OR_USERNAME_REQUIRED, HttpStatus.badRequest));
-    }
-
-    if (isNullOrEmpty(password)) {
-      return Future.error(
-          HttpException(ErrorMessage.PASSWORD_REQUIRED, HttpStatus.badRequest));
-    }
-
-    if (!isValidPassword(password)) {
-      return Future.error(HttpException(
-          ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH, HttpStatus.badRequest));
-    }
-
     try {
-      User? userDb;
+      if (isNullOrEmpty(identifier)) {
+        throw CustomHttpException(
+            ErrorMessage.EMAIL_OR_USERNAME_REQUIRED, HttpStatus.badRequest);
+      }
+      if (isNullOrEmpty(password)) {
+        throw CustomHttpException(
+            ErrorMessage.PASSWORD_REQUIRED, HttpStatus.badRequest);
+      }
+      if (!isValidPassword(password)) {
+        throw CustomHttpException(
+            ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH, HttpStatus.badRequest);
+      }
 
+      User? userDb;
       if (isValidEmail(identifier)) {
         userDb =
             await _userRepository.findUserByEmail(identifier!, showPass: true);
@@ -42,20 +39,24 @@ class UserController {
       }
 
       if (userDb == null || userDb.password == null) {
-        return Future.error(
-            HttpException(ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound));
+        throw CustomHttpException(
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound);
       }
 
-      // Kiểm tra mật khẩu nhập vào với mật khẩu hash
-      if (verifyPassword(password, userDb.password!)) {
-        final token = generateTokenJwt(userDb);
-        return Future.value(userDb);
-      } else {
-        return Future.error(HttpException(
-            ErrorMessage.PASSWORD_INCORRECT, HttpStatus.badRequest));
+      if (!verifyPassword(password, userDb.password!)) {
+        throw CustomHttpException(
+            ErrorMessage.PASSWORD_INCORRECT, HttpStatus.badRequest);
       }
+
+      final token = generateTokenJwt(userDb);
+      return userDb;
     } catch (e) {
-      return Future.error(e);
+      if (e is CustomHttpException) {
+        return Future.error(e);
+      }
+
+      return Future.error(CustomHttpException(
+          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
     }
   }
 
@@ -75,24 +76,35 @@ class UserController {
     if (!isValidPassword(user.password)) {
       errMsgList.add(ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH);
     }
+    if (!isStrongPassword(user.password)) {
+      errMsgList.add(ErrorMessage.PASSWORD_INVALID);
+    }
 
     if (errMsgList.isNotEmpty) {
-      final errors = errMsgList.join(',');
-      completer.completeError(GeneralException(errors));
-      return completer.future;
+      final errors = errMsgList.join('; ');
+      return Future.error(CustomHttpException(errors, HttpStatus.badRequest));
     }
+    try {
+      user.password = genPassword(user.password!);
+      final result = await _userRepository.saveUser(user);
+      if (result > 0) {
+        if (user.email == null) {
+          throw const CustomHttpException(
+              ErrorMessage.EMAIL_REQUIRED, HttpStatus.badRequest);
+        }
+        final userDb = await _userRepository.findUserByEmail(user.email!);
 
-    user.password = genPassword(user.password!);
-    final result = await _userRepository.saveUser(user);
-    if (result > 0) {
-      if (user.email == null) {
-        throw Exception('Email không được để trống');
+        final token = generateTokenJwt(userDb!);
+        completer.complete(userDb);
       }
-      final userDb = await _userRepository.findUserByEmail(user.email!);
-
-      final token = generateTokenJwt(userDb!);
-      completer.complete(userDb);
+    } catch (e) {
+      if (e is CustomHttpException) {
+        return Future.error(e);
+      }
+      return Future.error(CustomHttpException(
+          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
     }
+
     return completer.future;
   }
 

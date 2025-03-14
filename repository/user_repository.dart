@@ -26,7 +26,7 @@ class UserRepository implements IUserRepo {
   Future<int> saveUser(User user) async {
     final existingUser = await findUserByEmail(user.email);
     if (existingUser != null) {
-      throw const HttpException(
+      throw const CustomHttpException(
           ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest);
     }
     final result = await _db.executor.execute(
@@ -52,7 +52,7 @@ class UserRepository implements IUserRepo {
     );
 
     if (result.isEmpty) {
-      throw const HttpException(
+      throw const CustomHttpException(
           ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
     }
     return result.first[0] as int;
