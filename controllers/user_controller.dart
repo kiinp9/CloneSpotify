@@ -17,15 +17,15 @@ class UserController {
   Future<User> Login(String? identifier, String password) async {
     try {
       if (isNullOrEmpty(identifier)) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
             ErrorMessage.EMAIL_OR_USERNAME_REQUIRED, HttpStatus.badRequest);
       }
       if (isNullOrEmpty(password)) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
             ErrorMessage.PASSWORD_REQUIRED, HttpStatus.badRequest);
       }
       if (!isValidPassword(password)) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
             ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH, HttpStatus.badRequest);
       }
 
@@ -39,12 +39,12 @@ class UserController {
       }
 
       if (userDb == null || userDb.password == null) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
             ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound);
       }
 
       if (!verifyPassword(password, userDb.password!)) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
             ErrorMessage.PASSWORD_INCORRECT, HttpStatus.badRequest);
       }
 
