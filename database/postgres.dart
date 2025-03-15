@@ -6,7 +6,7 @@ class Database {
     _connect();
   }
 
-  final String dbHost = 'localhost';
+  final String dbHost = 'host.docker.internal';
   final int dbPort = 5432;
   final String dbName = 'spotify';
   final String dbUser = 'postgres';
