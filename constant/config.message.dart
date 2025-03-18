@@ -18,4 +18,14 @@ class ErrorMessage {
   static const String PASSWORD_INVALID =
       'Mật khẩu cần có đầy đủ chữ hoa, chữ thường ,số ,kí tự đặc biệt.';
   static const String EMAIL_REQUIRED = 'Yêu cầu nhập email người dùng';
+  static const String EMAIL_NOT_FOUND = 'Email không tồn tại';
+  static const String INVALID_OTP_REQUEST = 'Không nhận được OTP từ request';
+  static const String OTP_INVALID_OR_EXPIRED =
+      'Không nhận được OTP hoặc OTP đã hết hạn';
+  static const String REQUIRED = 'Yêu cầu nhập đủ thông tin';
+  static const String PASSWORDS_DO_NOT_MATCH =
+      'Mật khẩu mới và xác nhận mật khẩu không khớp nhau';
+  static const String OLD_PASSWORD_INCORRECT = 'Mật khẩu cũ không khớp';
+  static const String PASSWORD_CANNOT_BE_THE_SAME =
+      'Mật khẩu mới và mật khẩu hiện tại phải khác nhau';
 }

@@ -17,12 +17,24 @@ services:
     networks:
       - my_network
 
+  redis:
+    image: redis:latest
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - my_network
+
   spotify_backend:
     build: .
     container_name: app_spotify
     restart: always
     depends_on:
       - db
+      - redis
     ports:
       - "8080:8080"
     working_dir: /app
@@ -32,12 +44,15 @@ services:
       DB_NAME: spotify
       DB_USER: postgres
       DB_PASSWORD: 6901ag
-      JWT_SECRET: "ded485eb5d74090cc81fa158716bb11e56d4844182c39a752f95f6c3f6b1f38d"
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
     command: ["/app/build/bin/server"]
     networks:
       - my_network
 
 networks:
   my_network:
+
 volumes:
   postgres_data:
+  redis_data:

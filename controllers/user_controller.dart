@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import '../constant/config.message.dart';
 import '../model/users.dart';
+import '../security/password.security.dart';
 import '../validate/email.dart';
 import '../validate/password.dart';
 import '../repository/user_repository.dart';
@@ -24,10 +25,10 @@ class UserController {
         throw const CustomHttpException(
             ErrorMessage.PASSWORD_REQUIRED, HttpStatus.badRequest);
       }
-      if (!isValidPassword(password)) {
-        throw const CustomHttpException(
-            ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH, HttpStatus.badRequest);
-      }
+      //if (!isValidPassword(password)) {
+      //throw const CustomHttpException(
+      // ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH, HttpStatus.badRequest);
+      //}
 
       User? userDb;
       if (isValidEmail(identifier)) {
@@ -49,6 +50,8 @@ class UserController {
       }
 
       final token = generateTokenJwt(userDb);
+      // ignore: join_return_with_assignment
+      userDb = userDb.copyWith();
       return userDb;
     } catch (e) {
       if (e is CustomHttpException) {
@@ -114,8 +117,72 @@ class UserController {
     return user;
   }
 
+  Future<User?> findUserByEmail(String email, {bool showPass = false}) async {
+    final user =
+        await _userRepository.findUserByEmail(email, showPass: showPass);
+
+    return user;
+  }
+
   Future<User?> updateUser(User user) async {
     final updatedUser = await _userRepository.updateUser(user);
     return updatedUser;
+  }
+
+  Future<void> resetPassword(int id, String currentPassword, String newPassword,
+      String confirmPassword) async {
+    final completer = Completer<void>();
+    final errMsgList = <String>[];
+
+    if (isNullOrEmpty(currentPassword)) {
+      errMsgList.add(ErrorMessage.REQUIRED);
+    }
+    if (isNullOrEmpty(newPassword)) {
+      errMsgList.add(ErrorMessage.REQUIRED);
+    }
+    if (isNullOrEmpty(confirmPassword)) {
+      errMsgList.add(ErrorMessage.REQUIRED);
+    }
+    if (!isValidPassword(newPassword)) {
+      errMsgList.add(ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH);
+    }
+    if (!isStrongPassword(newPassword)) {
+      errMsgList.add(ErrorMessage.PASSWORD_INVALID);
+    }
+    if (newPassword != confirmPassword) {
+      errMsgList.add(ErrorMessage.PASSWORDS_DO_NOT_MATCH);
+    }
+    if (currentPassword == newPassword) {
+      errMsgList.add(ErrorMessage.PASSWORD_CANNOT_BE_THE_SAME);
+    }
+
+    if (errMsgList.isNotEmpty) {
+      final errors = errMsgList.join('; ');
+      return Future.error(CustomHttpException(errors, HttpStatus.badRequest));
+    }
+
+    try {
+      final userDb = await _userRepository.findUserById(id);
+      if (userDb == null) {
+        throw CustomHttpException(
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound);
+      }
+      if (!verifyPassword(currentPassword, userDb.password!)) {
+        throw CustomHttpException(
+            ErrorMessage.OLD_PASSWORD_INCORRECT, HttpStatus.badRequest);
+      }
+
+      await _userRepository.updatePassword(id, genPassword(newPassword));
+
+      completer.complete();
+    } catch (e) {
+      if (e is CustomHttpException) {
+        return Future.error(e);
+      }
+      return Future.error(CustomHttpException(
+          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+    }
+
+    return completer.future;
   }
 }

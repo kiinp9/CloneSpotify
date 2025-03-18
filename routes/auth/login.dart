@@ -37,10 +37,8 @@ Future<Response> onRequest(RequestContext context) async {
     });
   } catch (e) {
     if (e is CustomHttpException) {
-      // Trả về status code chính xác từ HttpException
       return AppResponse().error(e.statusCode, e.message);
     }
-    // Trả về lỗi 500 nếu không phải HttpException
     return AppResponse().error(HttpStatus.internalServerError, e.toString());
   }
 }

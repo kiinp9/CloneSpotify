@@ -12,7 +12,9 @@ dependencies:
   dbcrypt: ^2.0.0
   dotenv: ^4.2.0
   email_validator: ^3.0.0
+  mailer: ^6.4.1
   postgres: ^3.5.4
+  redis: ^4.0.0
   strings: ^3.2.0
 
 dev_dependencies:

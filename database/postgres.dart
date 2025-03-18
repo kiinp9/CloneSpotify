@@ -6,16 +6,16 @@ class Database {
     _connect();
   }
 
-  final String dbHost = 'host.docker.internal';
-  final int dbPort = 5432;
-  final String dbName = 'spotify';
-  final String dbUser = 'postgres';
-  final String dbPass = '6901ag';
-
   late Connection executor;
 
   Future<void> _connect() async {
     try {
+      final String dbHost = 'host.docker.internal';
+      final int dbPort = 5432;
+      final String dbName = 'spotify';
+      final String dbUser = 'postgres';
+      final String dbPass = '6901ag';
+
       executor = await Connection.open(
         Endpoint(
           host: dbHost,
@@ -26,6 +26,7 @@ class Database {
         ),
         settings: ConnectionSettings(sslMode: SslMode.disable),
       );
+
       print('✅ Kết nối đến PostgreSQL thành công!');
     } catch (e) {
       print('❌ Lỗi kết nối đến PostgreSQL: $e');

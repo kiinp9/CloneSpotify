@@ -9,6 +9,7 @@ import '../model/roles.dart';
 import '../model/users.dart';
 import '../repository/user_repository.dart';
 import '../security/jwt.security.dart';
+import '../security/reset-password-token.security.dart';
 
 Handler middleware(Handler handler) {
   final database = Database();
@@ -47,7 +48,10 @@ Middleware verifyJwt() {
     return (context) async {
       try {
         final url = context.request.url.toString();
-        if (url.startsWith('auth/register') || url.startsWith('auth/login')) {
+        if (url.startsWith('auth/register') ||
+            url.startsWith('auth/login') ||
+            url.startsWith('auth/forgot-password') ||
+            url.startsWith('auth/check-otp')) {
           return await handler(context);
         }
         final headers = context.request.headers;

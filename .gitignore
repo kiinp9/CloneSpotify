@@ -13,4 +13,7 @@ build/
 .dart_frog
 
 # Test related files
-coverage/".env" 
+coverage/
+
+# Ignore environment files
+.env
