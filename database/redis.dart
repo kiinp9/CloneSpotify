@@ -24,7 +24,7 @@ class RedisService {
   }
 
   Future<void> _connect() async {
-    final String redisHost = "localhost";
+    final String redisHost = "host.docker.internal";
     final int redisPort = 6379;
     final String? redisPassword = null;
 
