@@ -1,5 +1,6 @@
 class ErrorMessageSQL {
   static const String SQL_QUERY_ERROR = 'Lỗi thực hiện truy vấn SQL!';
+  static const String SAVE_USER_FAILED = 'Lỗi khi lưu người dùng';
 }
 
 class ErrorMessage {
@@ -28,4 +29,6 @@ class ErrorMessage {
   static const String OLD_PASSWORD_INCORRECT = 'Mật khẩu cũ không khớp';
   static const String PASSWORD_CANNOT_BE_THE_SAME =
       'Mật khẩu mới và mật khẩu hiện tại phải khác nhau';
+  static const String ID_TOKEN_INVALID = 'Id token không hợp lệ';
+  static const String MISSING_ID_TOKEN = 'Thiếu idToken từ Google';
 }

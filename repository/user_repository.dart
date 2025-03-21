@@ -29,12 +29,13 @@ class UserRepository implements IUserRepo {
       throw const CustomHttpException(
           ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest);
     }
+
     final result = await _db.executor.execute(
       Sql.named('''
-      INSERT INTO users (fullName, userName, email, password, gender, birthday, status, roleId, createdAt, updatedAt)
-      VALUES (@fullName, @userName, @email, @password, @gender, @birthday, @status, @roleId, @createdAt, @updatedAt)
-      RETURNING id
-    '''),
+    INSERT INTO users (fullName, userName, email, password, gender, birthday, status, roleId, createdAt, updatedAt, GoogleStatus)
+    VALUES (@fullName, @userName, @email, @password, @gender, @birthday, @status, @roleId, @createdAt, @updatedAt, @GoogleStatus)
+    RETURNING id
+  '''),
       parameters: {
         'fullName': user.fullName,
         'userName': user.userName,
@@ -48,14 +49,22 @@ class UserRepository implements IUserRepo {
             DateTime.now().toIso8601String(),
         'updatedAt': user.updatedAt?.toIso8601String() ??
             DateTime.now().toIso8601String(),
+        'GoogleStatus': user.GoogleStatus,
       },
     );
 
-    if (result.isEmpty) {
+    if (result.isEmpty || result.first.isEmpty) {
       throw const CustomHttpException(
           ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
     }
-    return result.first[0] as int;
+
+    final insertedId = result.first[0];
+    if (insertedId == null) {
+      throw const CustomHttpException(
+          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+    }
+
+    return insertedId as int;
   }
 
   @override
@@ -63,7 +72,7 @@ class UserRepository implements IUserRepo {
     final result = await _db.executor.execute(
       Sql.named('''
       SELECT u.id, u.fullName, u.userName, u.email, u.password, u.gender, u.birthday, 
-             u.status, u.roleId, u.createdAt, u.updatedAt, 
+             u.status, u.roleId, u.createdAt, u.updatedAt,u.GoogleStatus, 
              r.id as roleId, r.name, r.description, r.createdAt, r.updatedAt
       FROM users u
       LEFT JOIN roles r ON u.roleId = r.id
@@ -93,16 +102,17 @@ class UserRepository implements IUserRepo {
       roleId: row[8] as int?,
       createdAt: row[9] != null ? DateTime.tryParse(row[9].toString()) : null,
       updatedAt: row[10] != null ? DateTime.tryParse(row[10].toString()) : null,
-      role: row[11] != null
+      GoogleStatus: row[11] as int,
+      role: row[12] != null
           ? Role(
-              id: row[11] as int,
-              name: _decode(row[12]),
-              description: _decode(row[13]),
-              createdAt: row[14] != null
-                  ? DateTime.tryParse(row[14].toString())
-                  : null,
-              updatedAt: row[15] != null
+              id: row[12] as int,
+              name: _decode(row[13]),
+              description: _decode(row[14]),
+              createdAt: row[15] != null
                   ? DateTime.tryParse(row[15].toString())
+                  : null,
+              updatedAt: row[16] != null
+                  ? DateTime.tryParse(row[16].toString())
                   : null,
             )
           : null,
@@ -114,7 +124,7 @@ class UserRepository implements IUserRepo {
     final result = await _db.executor.execute(
       Sql.named('''
       SELECT u.id, u.fullName, u.userName, u.email, u.password, u.gender, u.birthday, 
-             u.status, u.roleId, u.createdAt, u.updatedAt, 
+             u.status, u.roleId, u.createdAt, u.updatedAt,u.GoogleStatus, 
              r.id as roleId, r.name, r.description, r.createdAt, r.updatedAt
       FROM users u
       LEFT JOIN roles r ON u.roleId = r.id
@@ -144,16 +154,17 @@ class UserRepository implements IUserRepo {
       roleId: row[8] as int?,
       createdAt: row[9] != null ? DateTime.tryParse(row[9].toString()) : null,
       updatedAt: row[10] != null ? DateTime.tryParse(row[10].toString()) : null,
-      role: row[11] != null
+      GoogleStatus: row[11] as int,
+      role: row[12] != null
           ? Role(
-              id: row[11] as int,
-              name: _decode(row[12]),
-              description: _decode(row[13]),
-              createdAt: row[14] != null
-                  ? DateTime.tryParse(row[14].toString())
-                  : null,
-              updatedAt: row[15] != null
+              id: row[12] as int,
+              name: _decode(row[13]),
+              description: _decode(row[14]),
+              createdAt: row[15] != null
                   ? DateTime.tryParse(row[15].toString())
+                  : null,
+              updatedAt: row[16] != null
+                  ? DateTime.tryParse(row[16].toString())
                   : null,
             )
           : null,
@@ -174,6 +185,7 @@ class UserRepository implements IUserRepo {
     if (result.isEmpty) return null;
 
     final row = result.first;
+
     final genderEnum = row[5] != null
         ? GenderE.values.byName(_decode(row[5]))
         : GenderE.preferNotToSay;
@@ -190,16 +202,17 @@ class UserRepository implements IUserRepo {
       roleId: row[8] as int?,
       createdAt: row[9] != null ? DateTime.tryParse(row[9].toString()) : null,
       updatedAt: row[10] != null ? DateTime.tryParse(row[10].toString()) : null,
-      role: row[11] != null
+      GoogleStatus: row[11] as int,
+      role: row[12] != null
           ? Role(
-              id: row[11] as int,
-              name: _decode(row[12]),
-              description: _decode(row[13]),
-              createdAt: row[14] != null
-                  ? DateTime.tryParse(row[14].toString())
-                  : null,
-              updatedAt: row[15] != null
+              id: row[12] as int,
+              name: _decode(row[13]),
+              description: _decode(row[14]),
+              createdAt: row[15] != null
                   ? DateTime.tryParse(row[15].toString())
+                  : null,
+              updatedAt: row[16] != null
+                  ? DateTime.tryParse(row[16].toString())
                   : null,
             )
           : null,
@@ -212,7 +225,7 @@ class UserRepository implements IUserRepo {
 UPDATE users 
 SET fullName = @fullName, gender = @gender, birthday = @birthday,     updatedAt = NOW() AT TIME ZONE 'UTC' + INTERVAL '7 hours'
 WHERE id = @id
-RETURNING id, fullName, userName, email, password, gender, birthday, status, roleId, createdAt, updatedAt
+RETURNING id, fullName, userName, email, password, gender, birthday, status, roleId, createdAt, updatedAt,GoogleStatus
 '''),
       parameters: {
         'id': user.id,
@@ -271,6 +284,7 @@ WHERE id = @roleId
       updatedAt: row.length > 10 && row[10] != null
           ? DateTime.parse(row[10].toString())
           : null,
+      GoogleStatus: row[11] as int,
       role: role,
     );
   }
@@ -335,6 +349,7 @@ WHERE id = @roleId
       updatedAt: row.length > 10 && row[10] != null
           ? DateTime.parse(row[10].toString())
           : null,
+      GoogleStatus: row[11] as int,
       role: role,
     );
   }

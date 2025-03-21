@@ -14,6 +14,7 @@ class User {
     this.roleId,
     this.createdAt,
     this.updatedAt,
+    this.GoogleStatus,
     this.role,
   });
 
@@ -29,6 +30,7 @@ class User {
   Role? role;
   GenderE gender;
   DateTime? birthday;
+  int? GoogleStatus;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -42,6 +44,7 @@ class User {
         'birthday': birthday?.toIso8601String(),
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'GoogleStatus': GoogleStatus,
         'role': role?.toJson(),
       };
   User copyWith({
@@ -60,6 +63,7 @@ class User {
       roleId: roleId,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      GoogleStatus: GoogleStatus,
       role: role,
     );
   }
@@ -67,6 +71,6 @@ class User {
   @override
   String toString() {
     return '''
-  {id= $id, fullName= $fullName, userName= $userName,email =$email,password= $password, status =$status,roleId=$roleId,createdAt= $createdAt,updatedAt= $updatedAt, role= $role,gender= ${gender.name}, birthday = $birthday}''';
+  {id= $id, fullName= $fullName, userName= $userName,email =$email,password= $password, status =$status,roleId=$roleId,createdAt= $createdAt,updatedAt= $updatedAt, role= $role,gender= ${gender.name}, birthday = $birthday, GoogleStatus= $GoogleStatus}''';
   }
 }

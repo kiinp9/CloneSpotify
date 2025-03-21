@@ -29,7 +29,9 @@ Future<Response> onRequest(RequestContext context) async {
     fullName: body['fullName'].toString(),
     userName: body['userName'].toString(),
     roleId: 2,
+    GoogleStatus: 1,
   );
+
   try {
     final user = await userController.Register(userReq);
     final token = generateTokenJwt(user);

@@ -8,8 +8,6 @@ import '../validate/password.dart';
 import '../repository/user_repository.dart';
 import '../exception/config.exception.dart';
 import '../validate/strings.dart';
-import '../exception/general.exception.dart';
-import '../security/password.security.dart';
 import '../security/jwt.security.dart';
 
 class UserController {
@@ -175,6 +173,52 @@ class UserController {
       await _userRepository.updatePassword(id, genPassword(newPassword));
 
       completer.complete();
+    } catch (e) {
+      if (e is CustomHttpException) {
+        return Future.error(e);
+      }
+      return Future.error(CustomHttpException(
+          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+    }
+
+    return completer.future;
+  }
+
+  Future<User> registerGoogleUser(User user) async {
+    final completer = Completer<User>();
+    final errMsgList = <String>[];
+
+    if (!isValidEmail(user.email)) {
+      errMsgList.add(ErrorMessage.EMAIL_INVALID);
+    }
+
+    if (errMsgList.isNotEmpty) {
+      return Future.error(
+          CustomHttpException(errMsgList.join('; '), HttpStatus.badRequest));
+    }
+
+    try {
+      final existingUser = await _userRepository.findUserByEmail(user.email);
+      if (existingUser != null) {
+        throw const CustomHttpException(
+            ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest);
+      }
+
+      user.password = null;
+      final result = await _userRepository.saveUser(user);
+
+      if (result <= 0) {
+        throw const CustomHttpException(
+            ErrorMessageSQL.SAVE_USER_FAILED, HttpStatus.internalServerError);
+      }
+
+      final userDb = await _userRepository.findUserByEmail(user.email);
+      if (userDb == null) {
+        throw const CustomHttpException(
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.internalServerError);
+      }
+
+      completer.complete(userDb);
     } catch (e) {
       if (e is CustomHttpException) {
         return Future.error(e);
