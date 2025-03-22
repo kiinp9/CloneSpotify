@@ -296,7 +296,7 @@ WHERE id = @roleId
       UPDATE users 
       SET password = @password, updatedAt = NOW() AT TIME ZONE 'UTC' + INTERVAL '7 hours'
       WHERE id = @id
-      RETURNING id, fullName, userName, email, password, gender, birthday, status, roleId, createdAt, updatedAt
+      RETURNING id, fullName, userName, email, password, gender, birthday, status, roleId, createdAt, updatedAt,GoogleStatus
     '''),
       parameters: {'id': id, 'password': newPassword},
     );
