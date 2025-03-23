@@ -1,54 +1,60 @@
 import 'dart:io';
-
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import '../config/jwt.config.dart';
-
 import '../constant/config.message.dart';
-import '../model/users.dart';
-import '../model/roles.dart';
+import '../database/iredis.dart';
 import '../exception/config.exception.dart';
 import '../exception/exception.dart';
+import '../model/users.dart';
 
-String generateTokenJwt(User user) {
-  final jwt = JWT(
-    {
-      'id': user.id,
-      'email': user.email,
-      'roleId': user.roleId,
-      'roleName': user.role?.name,
-      'exp': DateTime.now()
-              .add(Duration(
-                  seconds:
-                      JwtConfig.accessTokenExpiry)) // ✅ CHUYỂN INT -> DURATION
-              .millisecondsSinceEpoch ~/
-          1000,
-    },
-  );
-  return jwt.sign(SecretKey(JwtConfig.secretKey));
-}
+class JwtService {
+  final IRedisService redisService;
 
-Map<String, dynamic>? decodeToken(String token) {
-  try {
-    final jwt = JWT.verify(token, SecretKey(JwtConfig.secretKey));
-    return {
-      'id': jwt.payload['id'],
-      'email': jwt.payload['email'],
-      'roleId': jwt.payload['roleId'],
-      'roleName': jwt.payload['roleName'],
-      'exp': jwt.payload['exp'],
-    };
-  } catch (e) {
-    throw const CustomHttpException(
-        ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+  JwtService(this.redisService);
+
+  Future<String> generateTokenJwt(User user) async {
+    final int tokenVersion =
+        (await redisService.getTokenVersion(user.id ?? 0)) ?? 0;
+
+    final jwt = JWT(
+      {
+        'id': user.id ?? 0,
+        'email': user.email,
+        'roleId': user.roleId,
+        'roleName': user.role?.name,
+        'tokenVersion': tokenVersion, // Thêm tokenVersion vào payload
+        'exp': DateTime.now()
+                .add(Duration(seconds: JwtConfig.accessTokenExpiry))
+                .millisecondsSinceEpoch ~/
+            1000,
+      },
+    );
+    return jwt.sign(SecretKey(JwtConfig.secretKey));
   }
-}
 
-AppException? verifyToken(String token) {
-  try {
-    JWT.verify(token, SecretKey(JwtConfig.secretKey));
-    return null;
-  } catch (e) {
-    throw const CustomHttpException(
-        ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+  Map<String, dynamic>? decodeToken(String token) {
+    try {
+      final jwt = JWT.verify(token, SecretKey(JwtConfig.secretKey));
+      return {
+        'id': jwt.payload['id'],
+        'email': jwt.payload['email'],
+        'roleId': jwt.payload['roleId'],
+        'roleName': jwt.payload['roleName'],
+        'tokenVersion': jwt.payload['tokenVersion'], // Giữ tokenVersion
+        'exp': jwt.payload['exp'],
+      };
+    } catch (e) {
+      throw const CustomHttpException(
+          ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+    }
+  }
+
+  void verifyToken(String token) {
+    try {
+      JWT.verify(token, SecretKey(JwtConfig.secretKey));
+    } catch (e) {
+      throw const CustomHttpException(
+          ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+    }
   }
 }

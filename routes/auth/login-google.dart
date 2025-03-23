@@ -16,6 +16,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final userController = context.read<UserController>();
+  final jwtService = context.read<JwtService>();
   final body = await context.request.json();
 
   if (body['idToken'] == null) {
@@ -36,7 +37,7 @@ Future<Response> onRequest(RequestContext context) async {
 
     var existingUser = await userController.findUserByEmail(email);
     if (existingUser != null) {
-      final token = generateTokenJwt(existingUser);
+      final token = jwtService.generateTokenJwt(existingUser);
       return AppResponse().ok(HttpStatus.ok, {
         'user': existingUser.toJson(),
         'token': token,
@@ -67,7 +68,7 @@ Future<Response> onRequest(RequestContext context) async {
     );
 
     final savedUser = await userController.registerGoogleUser(newUser);
-    final token = generateTokenJwt(savedUser);
+    final token = await jwtService.generateTokenJwt(savedUser);
 
     return AppResponse().ok(HttpStatus.ok, {
       'user': savedUser.toJson(),

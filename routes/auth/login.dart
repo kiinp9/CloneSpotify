@@ -13,6 +13,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final userController = context.read<UserController>();
+  final jwtService = context.read<JwtService>();
   final body = await context.request.json();
 
   final identifier = body['identifier']?.toString() ??
@@ -29,7 +30,7 @@ Future<Response> onRequest(RequestContext context) async {
       identifier,
       body['password'].toString(),
     );
-    final token = generateTokenJwt(user);
+    final token = await jwtService.generateTokenJwt(user);
 
     return AppResponse().ok(HttpStatus.ok, {
       'user': user.toJson(),

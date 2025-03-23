@@ -15,6 +15,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final userController = context.read<UserController>();
+  final jwtService = context.read<JwtService>();
   final body = await context.request.json();
   final userReq = User(
     email: body['email'].toString(),
@@ -34,7 +35,7 @@ Future<Response> onRequest(RequestContext context) async {
 
   try {
     final user = await userController.Register(userReq);
-    final token = generateTokenJwt(user);
+    final token = await jwtService.generateTokenJwt(user);
 
     return AppResponse().ok(HttpStatus.ok, {
       'user': user.toJson(),

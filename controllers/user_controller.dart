@@ -11,7 +11,8 @@ import '../validate/strings.dart';
 import '../security/jwt.security.dart';
 
 class UserController {
-  UserController(this._userRepository);
+  UserController(this._userRepository, this._jwtService);
+  final JwtService _jwtService;
   final UserRepository _userRepository;
   Future<User> Login(String? identifier, String password) async {
     try {
@@ -47,7 +48,6 @@ class UserController {
             ErrorMessage.PASSWORD_INCORRECT, HttpStatus.badRequest);
       }
 
-      final token = generateTokenJwt(userDb);
       // ignore: join_return_with_assignment
       userDb = userDb.copyWith();
       return userDb;
@@ -95,7 +95,7 @@ class UserController {
         }
         final userDb = await _userRepository.findUserByEmail(user.email!);
 
-        final token = generateTokenJwt(userDb!);
+        final token = _jwtService.generateTokenJwt(userDb!);
         completer.complete(userDb);
       }
     } catch (e) {

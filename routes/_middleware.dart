@@ -2,81 +2,105 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 import '../controllers/user_controller.dart';
+import '../database/iredis.dart';
 import '../database/postgres.dart';
+import '../database/redis.dart';
 import '../log/log.dart';
-import '../model/response.dart';
+
 import '../model/roles.dart';
 import '../model/users.dart';
 import '../repository/user_repository.dart';
 import '../security/jwt.security.dart';
-import '../security/reset-password-token.security.dart';
 
 Handler middleware(Handler handler) {
   final database = Database();
   final userRepository = UserRepository(database);
-  final userController = UserController(userRepository);
+  final redisService = RedisService();
+  final jwtService = JwtService(redisService);
+  final userController = UserController(userRepository, jwtService);
+
+  final jwtMiddleware = createJwtMiddleware(jwtService, redisService);
 
   return handler
       .use(provider<Database>((context) => database))
+      .use(provider<IRedisService>((context) => redisService))
+      .use(provider<JwtService>((context) => jwtService))
       .use(provider<UserRepository>((context) => userRepository))
       .use(provider<UserController>((context) => userController))
       .use(loggingMiddleware())
-      .use(verifyJwt());
+      .use(jwtMiddleware);
 }
 
-Middleware injectionController() {
+Middleware injectionController(JwtService jwtService) {
   return (handler) {
     return handler
         .use(provider<Database>((context) => Database()))
-        .use(provider<UserRepository>(
-      (context) {
-        final db = context.read<Database>();
-        return UserRepository(db);
-      },
-    )).use(provider<UserController>(
-      (context) {
-        final userRepository = context.read<UserRepository>();
-        return UserController(userRepository);
-      },
-    )).use(loggingMiddleware());
+        .use(provider<IRedisService>((context) => RedisService()))
+        .use(provider<JwtService>((context) => jwtService))
+        .use(provider<UserRepository>((context) {
+      final db = context.read<Database>();
+      return UserRepository(db);
+    })).use(provider<UserController>((context) {
+      final userRepository = context.read<UserRepository>();
+      return UserController(userRepository, jwtService);
+    })).use(loggingMiddleware());
   };
 }
 
-// Middleware kiểm tra JWT
-Middleware verifyJwt() {
+Middleware createJwtMiddleware(
+    JwtService jwtService, IRedisService redisService) {
   return (handler) {
     return (context) async {
       try {
         final url = context.request.url.toString();
-        if (url.startsWith('auth/register') ||
-            url.startsWith('auth/login') ||
-            url.startsWith('auth/forgot-password') ||
-            url.startsWith('auth/check-otp')) {
+        if (url.contains('auth/register') ||
+            url.contains('auth/login') ||
+            url.contains('auth/forgot-password') ||
+            url.contains('auth/check-otp')) {
+          // Bỏ qua xác thực JWT cho các endpoint công khai
           return await handler(context);
         }
-        final headers = context.request.headers;
-        final authInfo = headers['Authorization'];
 
+        final authInfo = context.request.headers['Authorization'];
         if (authInfo == null || !authInfo.startsWith('Bearer ')) {
           return Response.json(
             statusCode: HttpStatus.unauthorized,
-            body: {'message': 'Missing or invalid Authorization header'},
+            body: {
+              'message':
+                  'Thiếu hoặc token không hợp lệ trong header Authorization'
+            },
           );
         }
 
         final token = authInfo.split(' ')[1];
 
-        final userData = decodeToken(token);
-
+        final userData = jwtService.decodeToken(token);
         if (userData == null) {
           return Response.json(
             statusCode: HttpStatus.unauthorized,
-            body: {'message': 'Invalid token'},
+            body: {'message': 'Token không hợp lệ'},
+          );
+        }
+
+        final userId = userData['id'] as int?;
+        final tokenVersion = userData['tokenVersion'] as int?;
+        if (userId == null || tokenVersion == null) {
+          return Response.json(
+            statusCode: HttpStatus.unauthorized,
+            body: {'message': 'Dữ liệu trong token không hợp lệ'},
+          );
+        }
+
+        final redisVersion = await redisService.getTokenVersion(userId);
+        if (tokenVersion != (redisVersion ?? 0)) {
+          return Response.json(
+            statusCode: HttpStatus.unauthorized,
+            body: {'message': 'Tài khoản đã đăng xuất! Token bị thu hồi'},
           );
         }
 
         final user = User(
-          id: userData['id'] as int?,
+          id: userId,
           email: userData['email']?.toString() ?? '',
           roleId: userData['roleId'] as int?,
           role: userData['roleName'] is String
@@ -88,7 +112,7 @@ Middleware verifyJwt() {
       } catch (e) {
         return Response.json(
           statusCode: HttpStatus.unauthorized,
-          body: {'message': 'Token verification failed: ${e.toString()}'},
+          body: {'message': 'Xác thực token thất bại: ${e.toString()}'},
         );
       }
     };

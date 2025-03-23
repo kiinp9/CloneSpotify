@@ -16,21 +16,21 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final userController = context.read<UserController>();
+  final jwtService = context.read<JwtService>();
   final body = await context.request.json();
 
   if (body['idToken'] == null) {
     return AppResponse()
-        .error(HttpStatus.badRequest, "Thiếu idToken từ Google");
+        .error(HttpStatus.badRequest, ErrorMessage.MISSING_ID_TOKEN);
   }
 
   try {
-    // Xác thực token với Google thông qua GoogleSecurity
     final googleUser = await GoogleSecurity.verifyGoogleToken(
         body['idToken']?.toString() ?? '');
     print('Google User: $googleUser');
     if (googleUser == null) {
       return AppResponse()
-          .error(HttpStatus.unauthorized, "ID token không hợp lệ");
+          .error(HttpStatus.unauthorized, ErrorMessage.ID_TOKEN_INVALID);
     }
 
     // Kiểm tra xem user đã tồn tại chưa
@@ -38,7 +38,7 @@ Future<Response> onRequest(RequestContext context) async {
         await userController.findUserByEmail(googleUser['email']!);
     if (existingUser != null) {
       // Nếu đã có tài khoản, trả về token
-      final token = generateTokenJwt(existingUser);
+      final token = await jwtService.generateTokenJwt(existingUser);
       return AppResponse().ok(HttpStatus.ok, {
         'user': existingUser.toJson(),
         'token': token,
@@ -49,15 +49,13 @@ Future<Response> onRequest(RequestContext context) async {
     if (body['userName'] == null ||
         body['gender'] == null ||
         body['birthday'] == null) {
-      return AppResponse().error(HttpStatus.badRequest,
-          "Thiếu thông tin bắt buộc (userName, gender, birthday)");
+      return AppResponse().error(HttpStatus.badRequest, ErrorMessage.REQUIRED);
     }
 
     // Tạo user mới từ thông tin Google + user nhập thêm
     final newUser = User(
       email: googleUser['email']!,
       fullName: googleUser['name'],
-
       userName: body['userName'].toString(),
       birthday: body['birthday'] != null
           ? DateTime.tryParse(body['birthday'].toString())
@@ -68,13 +66,12 @@ Future<Response> onRequest(RequestContext context) async {
       ),
       GoogleStatus: 2,
       status: 1,
-      roleId: 2, // Mặc định là user
+      roleId: 2,
     );
     print('fullName: ${googleUser['name']}');
 
-    // Lưu user vào database
     final savedUser = await userController.registerGoogleUser(newUser);
-    final token = generateTokenJwt(savedUser);
+    final token = await jwtService.generateTokenJwt(savedUser);
 
     return AppResponse().ok(HttpStatus.ok, {
       'user': savedUser.toJson(),

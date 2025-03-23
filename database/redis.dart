@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:redis/redis.dart';
-import '../main.dart';
 
-class RedisService {
+import 'iredis.dart';
+
+class RedisService implements IRedisService {
   RedisConnection? _connection;
   Command? _command;
   bool _initialized = false;
@@ -10,14 +11,12 @@ class RedisService {
   bool get isInitialized => _initialized;
 
   Future<void> init() async {
-    if (_initialized) {
-      return;
-    }
+    if (_initialized) return;
+
     try {
       await _connect();
-      if (_initialized) {
-        print("✅ Kết nối Redis thành công!");
-      }
+      _initialized = true;
+      print("✅ Kết nối Redis thành công!");
     } catch (e) {
       throw Exception("Không thể kết nối Redis: $e");
     }
@@ -34,11 +33,21 @@ class RedisService {
     if (redisPassword != null && redisPassword.isNotEmpty) {
       await _command!.send_object(['AUTH', redisPassword]);
     }
+
+    _initialized = true;
   }
 
   Future<void> _checkConnection() async {
-    if (!_initialized || _command == null) {
-      await init();
+    if (_command == null) {
+      await _connect();
+      return;
+    }
+
+    try {
+      await _command!.send_object(['PING']);
+    } catch (e) {
+      print("⚠️ Mất kết nối Redis, đang thử kết nối lại...");
+      await _connect();
     }
   }
 
@@ -59,12 +68,35 @@ class RedisService {
     await _command!.send_object(['DEL', key]);
   }
 
+  Future<void> setTokenVersion(int userId, int version) async {
+    await _checkConnection();
+    await _command!
+        .send_object(['SET', 'tokenVersion:$userId', version.toString()]);
+  }
+
+  Future<int?> getTokenVersion(int userId) async {
+    await _checkConnection();
+    final result = await _command!.send_object(['GET', 'tokenVersion:$userId']);
+    return result != null ? int.tryParse(result.toString()) : null;
+  }
+
+  Future<void> invalidateToken(int userId) async {
+    await _checkConnection();
+    final currentVersion = await getTokenVersion(userId) ?? 0;
+    await setTokenVersion(userId, currentVersion + 1);
+  }
+
   Future<void> close() async {
-    if (_initialized && _connection != null) {
-      await _connection!.close();
-      _initialized = false;
-      _connection = null;
-      _command = null;
+    if (_command != null) {
+      await _command!.send_object(['QUIT']);
     }
+
+    if (_connection != null) {
+      await _connection!.close();
+    }
+
+    _initialized = false;
+    _connection = null;
+    _command = null;
   }
 }
