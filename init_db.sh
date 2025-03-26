@@ -82,4 +82,59 @@ EXECUTE FUNCTION update_timestamp();
 
 -- Nếu mọi thứ thành công, commit transaction
 COMMIT;
+
+
+
+-- Tạo bảng music 
+	CREATE TABLE music (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    broadcastTime INT,
+    linkUrlMusic TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    imageLink TEXT NOT NULL
+);
+
+-- Tạo bảng author 
+Create table author (
+id SERIAL PRIMARY KEY,
+name Varchar(255) NOT NULL,
+description TEXT,
+avatarUrl TEXT NOT NULL,
+createdAt TIMESTAMP DEFAULT NOW(),
+updatedAt TIMESTAMP DEFAULT NOW()
+
+);
+
+-- Tạo bảng category
+
+Create table category(
+id SERIAL PRIMARY KEY,
+name varchar(255) NOT NULL,
+description TEXT,
+createdAt TIMESTAMP DEFAULT NOW(),
+updatedAt TIMESTAMP DEFAULT NOW()
+);
+
+
+-- Tạo bảng music_author(n-n)
+
+CREATE TABLE music_author (
+    musicId INT NOT NULL,
+    authorId INT NOT NULL,
+    PRIMARY KEY (musicId, authorId),
+    FOREIGN KEY (musicId) REFERENCES music(id) ,
+    FOREIGN KEY (authorId) REFERENCES author(id) 
+);
+
+-- Tạo bảng music_category(n-n)
+CREATE TABLE music_category (
+    musicId INT NOT NULL,
+    categoryId INT NOT NULL,
+    PRIMARY KEY (musicId, categoryId),
+    FOREIGN KEY (musicId) REFERENCES music(id) ,
+    FOREIGN KEY (categoryId) REFERENCES category(id) 
+);
 EOSQL
