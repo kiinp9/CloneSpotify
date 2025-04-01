@@ -37,7 +37,7 @@ Future<Response> onRequest(RequestContext context) async {
 
     var existingUser = await userController.findUserByEmail(email);
     if (existingUser != null) {
-      final token = jwtService.generateTokenJwt(existingUser);
+      final token = await jwtService.generateTokenJwt(existingUser);
       return AppResponse().ok(HttpStatus.ok, {
         'user': existingUser.toJson(),
         'token': token,

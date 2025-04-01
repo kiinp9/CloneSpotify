@@ -33,11 +33,9 @@ Future<Response> onRequest(RequestContext context) async {
           .error(HttpStatus.unauthorized, ErrorMessage.ID_TOKEN_INVALID);
     }
 
-    // Kiểm tra xem user đã tồn tại chưa
     var existingUser =
         await userController.findUserByEmail(googleUser['email']!);
     if (existingUser != null) {
-      // Nếu đã có tài khoản, trả về token
       final token = await jwtService.generateTokenJwt(existingUser);
       return AppResponse().ok(HttpStatus.ok, {
         'user': existingUser.toJson(),
@@ -45,14 +43,12 @@ Future<Response> onRequest(RequestContext context) async {
       });
     }
 
-    // Nếu chưa có tài khoản, yêu cầu user nhập thêm thông tin
     if (body['userName'] == null ||
         body['gender'] == null ||
         body['birthday'] == null) {
       return AppResponse().error(HttpStatus.badRequest, ErrorMessage.REQUIRED);
     }
 
-    // Tạo user mới từ thông tin Google + user nhập thêm
     final newUser = User(
       email: googleUser['email']!,
       fullName: googleUser['name'],

@@ -35,7 +35,7 @@ class Music {
         'categories': categories.map((c) => c.toJson()).toList(),
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
-        'image': imageUrl,
+        'imageUrl': imageUrl,
       };
 
   @override
@@ -43,7 +43,7 @@ class Music {
     return '''
 {id= $id, title= $title, description= $description,broadcastTime= $broadcastTime,linkUrlMusic= $linkUrlMusic, authors: ${authors.map((a) => a.name).toList()},
       categories: ${categories.map((c) => c.name).toList()},
-      createdAt = $createdAt, updatedAt= $updatedAt,image: $imageUrl}
+      createdAt = $createdAt, updatedAt= $updatedAt,imageUrl: $imageUrl}
 ''';
   }
 }

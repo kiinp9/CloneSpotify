@@ -31,4 +31,25 @@ class ErrorMessage {
       'Mật khẩu mới và mật khẩu hiện tại phải khác nhau';
   static const String ID_TOKEN_INVALID = 'Id token không hợp lệ';
   static const String MISSING_ID_TOKEN = 'Thiếu idToken từ Google';
+  static const String FILE_PATH_REQUIRED = 'File path không được bỏ trống';
+  static const String MUSIC_UPLOAD_FAILED = 'upload nhạc không thành công';
+  static const String UNABLE_TO_GET_SONG_DURATION =
+      'Xảy ra lỗi trong khi tính toán thời lượng của bài hát';
+  static const String INVALID_MUSIC_OR_IMAGE_FILE =
+      'File nhạc hoặc ảnh không hợp lệ';
+  static const String FILE_NOT_EXIST = 'File không tồn tại';
+  static const String UPLOAD_FAIL = 'upload file thất bại';
+  static const String EMPTY_TITLE = "Tiêu đề bài nhạc không được để trống";
+  static const String EMPTY_DESCRIPTION = "Mô tả bài nhạc không được để trống";
+  static const String EMPTY_AUTHOR_NAME = "Tên tác giả không được để trống";
+  static const String EMPTY_AUTHOR_DESC = "Mô tả tác giả không được để trống";
+  static const String EMPTY_AUTHOR_AVATAR =
+      "Ảnh đại diện của tác giả không được để trống";
+  static const String INVALID_MUSIC_PATH = "Đường dẫn tệp nhạc không hợp lệ";
+  static const String INVALID_IMAGE_PATH =
+      "Đường dẫn tệp hình ảnh không hợp lệ";
+  static const String EMPTY_CATEGORY_DESCRIPTION =
+      "Nội dung thể loại không được để trống";
+  static const String EMPTY_CATEGORY_NAME = "Tên thể loại không được để trống";
+  static const String SAVED_DB_FAIL = 'Xảy ra lỗi khi lưu vào database';
 }

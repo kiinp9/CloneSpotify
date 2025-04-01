@@ -94,7 +94,7 @@ COMMIT;
     linkUrlMusic TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    imageLink TEXT NOT NULL
+    imageUrl TEXT NOT NULL
 );
 
 -- Tạo bảng author 
