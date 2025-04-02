@@ -21,6 +21,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'id': result?.id,
         'name': result?.name,
         'description': result?.description,
+        'avatarUrl': result?.avatarUrl,
         'createdAt': result?.createdAt?.toIso8601String(),
         'updatedAt': result?.updatedAt?.toIso8601String(),
       },
