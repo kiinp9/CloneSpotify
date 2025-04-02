@@ -52,4 +52,5 @@ class ErrorMessage {
       "Nội dung thể loại không được để trống";
   static const String EMPTY_CATEGORY_NAME = "Tên thể loại không được để trống";
   static const String SAVED_DB_FAIL = 'Xảy ra lỗi khi lưu vào database';
+  static const String FORBIDDEN = 'Bạn không quyền thực hiện thao tác này';
 }

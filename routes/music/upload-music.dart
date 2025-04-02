@@ -2,13 +2,13 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 import '../../constant/config.message.dart';
 import '../../exception/config.exception.dart';
-import '../../libs/cloudinary/cloudinary.service.dart';
 import '../../model/response.dart';
 import '../../controllers/music_controller.dart';
 
 import '../../model/music.dart';
 import '../../model/author.dart';
 import '../../model/category.dart';
+import '../../model/users.dart';
 import '../../ultis/ffmpeg_helper.dart';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -18,7 +18,10 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final musicController = context.read<MusicController>();
-
+  final user = context.read<User?>();
+  if (user == null || user.role?.name != 'admin') {
+    return AppResponse().error(HttpStatus.forbidden, ErrorMessage.FORBIDDEN);
+  }
   final body = await context.request.json();
 
   final musicFilePath = body['musicFilePath']?.toString();

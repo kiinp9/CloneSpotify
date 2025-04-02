@@ -226,8 +226,8 @@ class MusicRepository implements IMusicRepo {
         description: musicRow[2] as String,
         broadcastTime: musicRow[3] as int,
         linkUrlMusic: musicRow[4] as String,
-        createdAt: DateTime.parse(musicRow[5] as String),
-        updatedAt: DateTime.parse(musicRow[6] as String),
+        createdAt: _parseDate(musicRow[5]),
+        updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
       );
 
@@ -241,16 +241,16 @@ class MusicRepository implements IMusicRepo {
         parameters: {'id': id},
       );
 
-      music.authors = authorResult
-          .map((row) => Author(
-                id: row[0] as int,
-                name: row[1] as String,
-                description: row[2] as String,
-                avatarUrl: row[3] as String?,
-                createdAt: DateTime.parse(row[4] as String),
-                updatedAt: DateTime.parse(row[5] as String),
-              ))
-          .toList();
+      music.authors = authorResult.map((row) {
+        return Author(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          avatarUrl: row[3] as String?,
+          createdAt: _parseDate(row[4]),
+          updatedAt: _parseDate(row[5]),
+        );
+      }).toList();
 
       final categoryResult = await _db.executor.execute(
         Sql.named('''
@@ -262,15 +262,15 @@ class MusicRepository implements IMusicRepo {
         parameters: {'id': id},
       );
 
-      music.categories = categoryResult
-          .map((row) => Category(
-                id: row[0] as int,
-                name: row[1] as String,
-                description: row[2] as String,
-                createdAt: DateTime.parse(row[3] as String),
-                updatedAt: DateTime.parse(row[4] as String),
-              ))
-          .toList();
+      music.categories = categoryResult.map((row) {
+        return Category(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          createdAt: _parseDate(row[3]),
+          updatedAt: _parseDate(row[4]),
+        );
+      }).toList();
 
       return music;
     } catch (e) {
@@ -284,74 +284,83 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl 
-        FROM music 
-        WHERE title = @title 
-      '''),
+      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl 
+      FROM music 
+            WHERE LOWER(title) = LOWER(@title)
+
+    '''),
         parameters: {'title': title},
       );
 
-      if (musicResult.isEmpty || musicResult.first.isEmpty) {
-        return null;
-      }
-
       final musicRow = musicResult.first;
+
       final music = Music(
         id: musicRow[0] as int,
         title: musicRow[1] as String,
         description: musicRow[2] as String,
         broadcastTime: musicRow[3] as int,
         linkUrlMusic: musicRow[4] as String,
-        createdAt: DateTime.parse(musicRow[5] as String),
-        updatedAt: DateTime.parse(musicRow[6] as String),
+        createdAt: _parseDate(musicRow[5]),
+        updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
       );
 
       final authorResult = await _db.executor.execute(
         Sql.named('''
-        SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt 
-        FROM author a 
-        JOIN music_author ma ON a.id = ma.authorId 
-        WHERE ma.musicId = @musicId
-      '''),
+      SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt 
+      FROM author a 
+      JOIN music_author ma ON a.id = ma.authorId 
+      WHERE ma.musicId = @musicId
+    '''),
         parameters: {'musicId': music.id},
       );
 
-      music.authors = authorResult
-          .map((row) => Author(
-                id: row[0] as int,
-                name: row[1] as String,
-                description: row[2] as String,
-                avatarUrl: row[3] as String?,
-                createdAt: DateTime.parse(row[4] as String),
-                updatedAt: DateTime.parse(row[5] as String),
-              ))
-          .toList();
+      music.authors = authorResult.map((row) {
+        return Author(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          avatarUrl: row[3] as String?,
+          createdAt: _parseDate(row[4]),
+          updatedAt: _parseDate(row[5]),
+        );
+      }).toList();
 
       final categoryResult = await _db.executor.execute(
         Sql.named('''
-        SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt 
-        FROM category c 
-        JOIN music_category mc ON c.id = mc.categoryId 
-        WHERE mc.musicId = @musicId
-      '''),
+      SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt 
+      FROM category c 
+      JOIN music_category mc ON c.id = mc.categoryId 
+      WHERE mc.musicId = @musicId
+    '''),
         parameters: {'musicId': music.id},
       );
 
-      music.categories = categoryResult
-          .map((row) => Category(
-                id: row[0] as int,
-                name: row[1] as String,
-                description: row[2] as String,
-                createdAt: DateTime.parse(row[3] as String),
-                updatedAt: DateTime.parse(row[4] as String),
-              ))
-          .toList();
+      music.categories = categoryResult.map((row) {
+        return Category(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          createdAt: _parseDate(row[3]),
+          updatedAt: _parseDate(row[4]),
+        );
+      }).toList();
 
       return music;
     } catch (e) {
-      throw const CustomHttpException(
+      throw CustomHttpException(
           ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
     }
+  }
+
+  DateTime? _parseDate(dynamic date) {
+    if (date == null) {
+      return null;
+    } else if (date is DateTime) {
+      return date;
+    } else if (date is String) {
+      return DateTime.tryParse(date);
+    }
+    return null;
   }
 }

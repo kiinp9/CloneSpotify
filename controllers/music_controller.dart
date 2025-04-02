@@ -85,4 +85,14 @@ class MusicController {
           "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
     }
   }
+
+  Future<Music?> findMusicById(int id) async {
+    final music = await _musicRepository.findMusicById(id);
+    return music;
+  }
+
+  Future<Music?> findMusicByTitle(String title) async {
+    final music = await _musicRepository.findMusicByTitle(title);
+    return music;
+  }
 }

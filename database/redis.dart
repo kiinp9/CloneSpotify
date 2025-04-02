@@ -23,7 +23,7 @@ class RedisService implements IRedisService {
   }
 
   Future<void> _connect() async {
-    final String redisHost = "host.docker.internal";
+    final String redisHost = "localhost";
     final int redisPort = 6379;
     final String? redisPassword = null;
 

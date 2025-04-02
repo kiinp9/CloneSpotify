@@ -1,3 +1,5 @@
+import 'music.dart';
+
 class Author {
   Author({
     this.id,
@@ -6,6 +8,7 @@ class Author {
     this.avatarUrl,
     this.createdAt,
     this.updatedAt,
+    this.music = const [],
   });
   int? id;
   String? name;
@@ -13,6 +16,7 @@ class Author {
   String? avatarUrl;
   DateTime? createdAt;
   DateTime? updatedAt;
+  List<Music> music;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -21,12 +25,13 @@ class Author {
         'avatarUrl': avatarUrl,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
+        'music': music.map((m) => m.toJson()).toList(),
       };
 
   @override
   String toString() {
     return '''
-{id =$id, name= $name, description= $description, avatarUrl= $avatarUrl,createdAt= $createdAt, updatedAt= $updatedAt}
+{id =$id, name= $name, description= $description, avatarUrl= $avatarUrl,createdAt= $createdAt, updatedAt= $updatedAt,music: ${music.map((m) => m.id).toList()}
 ''';
   }
 }

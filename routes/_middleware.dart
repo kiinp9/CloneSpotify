@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
+import '../controllers/author_controller.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/user_controller.dart';
 import '../database/iredis.dart';
@@ -11,6 +12,7 @@ import '../log/log.dart';
 
 import '../model/roles.dart';
 import '../model/users.dart';
+import '../repository/author_repository.dart';
 import '../repository/music_repository.dart';
 import '../repository/user_repository.dart';
 import '../security/jwt.security.dart';
@@ -19,11 +21,13 @@ Handler middleware(Handler handler) {
   final database = Database();
   final userRepository = UserRepository(database);
   final musicRepository = MusicRepository(database);
+  final authorRepository = AuthorRepository(database);
   final redisService = RedisService();
   final jwtService = JwtService(redisService);
   final cloudinaryService = CloudinaryService();
   final userController = UserController(userRepository, jwtService);
   final musicController = MusicController(musicRepository);
+  final authorController = AuthorController(authorRepository);
   final jwtMiddleware = createJwtMiddleware(jwtService, redisService);
 
   return handler
@@ -33,6 +37,7 @@ Handler middleware(Handler handler) {
       .use(provider<UserRepository>((context) => userRepository))
       .use(provider<UserController>((context) => userController))
       .use(provider<MusicController>((context) => musicController))
+      .use(provider<AuthorController>((context) => authorController))
       .use(provider<CloudinaryService>((context) => cloudinaryService))
       .use(loggingMiddleware())
       .use(jwtMiddleware);
@@ -57,6 +62,9 @@ Middleware injectionController(JwtService jwtService) {
     })).use(provider<MusicController>((context) {
       final musicRepository = context.read<MusicRepository>();
       return MusicController(musicRepository);
+    })).use(provider<AuthorController>((context) {
+      final authorRepository = context.read<AuthorRepository>();
+      return AuthorController(authorRepository);
     })).use(loggingMiddleware());
   };
 }
