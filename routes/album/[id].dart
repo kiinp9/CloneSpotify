@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 
 import '../../constant/config.message.dart';
-import '../../controllers/author_controller.dart';
+import '../../controllers/album_controller.dart';
 import '../../model/response.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
@@ -11,21 +11,20 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
+  final albumController = context.read<AlbumController>();
 
-  final authorController = context.read<AuthorController>();
   final id = int.tryParse(context.request.uri.pathSegments.last);
   try {
-    final result = await authorController.findAuthorById(id ?? 0);
+    final result = await albumController.findAlbumById(id ?? 0);
+
     return AppResponse().ok(HttpStatus.ok, {
-      'author': {
+      'album': {
         'id': result?.id,
-        'name': result?.name,
+        'albumTitle': result?.albumTitle,
         'description': result?.description,
-        'avatarUrl': result?.avatarUrl,
-        'createdAt': result?.createdAt?.toIso8601String(),
-        'updatedAt': result?.updatedAt?.toIso8601String(),
+        'linkUrlImageAlbum': result?.linkUrlImageAlbum,
       },
-      'music': result?.musics?.map((music) {
+      'musics': result?.musics?.map((music) {
         return {
           'id': music.id,
           'title': music.title,
@@ -35,6 +34,25 @@ Future<Response> onRequest(RequestContext context, String id) async {
           'createdAt': music.createdAt?.toIso8601String(),
           'updatedAt': music.updatedAt?.toIso8601String(),
           'imageUrl': music.imageUrl,
+        };
+      }).toList(),
+      'authors': result?.authors?.map((author) {
+        return {
+          'id': author.id,
+          'name': author.name,
+          'description': author.description,
+          'avatarUrl': author.avatarUrl,
+          'createdAt': author.createdAt?.toIso8601String(),
+          'updatedAt': author.updatedAt?.toIso8601String(),
+        };
+      }).toList(),
+      'categories': result?.categories?.map((category) {
+        return {
+          'id': category.id,
+          'name': category.name,
+          'description': category.description,
+          'createdAt': category.createdAt?.toIso8601String(),
+          'updatedAt': category.updatedAt?.toIso8601String(),
         };
       }).toList(),
     });

@@ -34,7 +34,7 @@ Future<Response> onRequest(RequestContext context) async {
   try {
     final userController = context.read<UserController>();
 
-    await userController.resetPassword(
+    await userController.userResetPassword(
       user.id!,
       currentPassword,
       newPassword,

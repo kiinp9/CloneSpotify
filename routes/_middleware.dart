@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
+import '../controllers/album_controller.dart';
 import '../controllers/author_controller.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/user_controller.dart';
@@ -12,6 +13,7 @@ import '../log/log.dart';
 
 import '../model/roles.dart';
 import '../model/users.dart';
+import '../repository/album_repository.dart';
 import '../repository/author_repository.dart';
 import '../repository/music_repository.dart';
 import '../repository/user_repository.dart';
@@ -22,12 +24,14 @@ Handler middleware(Handler handler) {
   final userRepository = UserRepository(database);
   final musicRepository = MusicRepository(database);
   final authorRepository = AuthorRepository(database);
+  final albumRepository = AlbumRepository(database);
   final redisService = RedisService();
   final jwtService = JwtService(redisService);
   final cloudinaryService = CloudinaryService();
   final userController = UserController(userRepository, jwtService);
   final musicController = MusicController(musicRepository);
   final authorController = AuthorController(authorRepository);
+  final albumController = AlbumController(albumRepository);
   final jwtMiddleware = createJwtMiddleware(jwtService, redisService);
 
   return handler
@@ -38,6 +42,7 @@ Handler middleware(Handler handler) {
       .use(provider<UserController>((context) => userController))
       .use(provider<MusicController>((context) => musicController))
       .use(provider<AuthorController>((context) => authorController))
+      .use(provider<AlbumController>((context) => albumController))
       .use(provider<CloudinaryService>((context) => cloudinaryService))
       .use(loggingMiddleware())
       .use(jwtMiddleware);
@@ -65,6 +70,9 @@ Middleware injectionController(JwtService jwtService) {
     })).use(provider<AuthorController>((context) {
       final authorRepository = context.read<AuthorRepository>();
       return AuthorController(authorRepository);
+    })).use(provider<AlbumController>((context) {
+      final albumRepository = context.read<AlbumRepository>();
+      return AlbumController(albumRepository);
     })).use(loggingMiddleware());
   };
 }
@@ -78,7 +86,8 @@ Middleware createJwtMiddleware(
         if (url.contains('auth/register') ||
             url.contains('auth/login') ||
             url.contains('auth/forgot-password') ||
-            url.contains('auth/check-otp')) {
+            url.contains('auth/check-otp') ||
+            url.contains('auth/reset-password')) {
           // Bỏ qua xác thực JWT cho các endpoint công khai
           return await handler(context);
         }

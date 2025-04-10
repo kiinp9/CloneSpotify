@@ -53,4 +53,9 @@ class ErrorMessage {
   static const String EMPTY_CATEGORY_NAME = "Tên thể loại không được để trống";
   static const String SAVED_DB_FAIL = 'Xảy ra lỗi khi lưu vào database';
   static const String FORBIDDEN = 'Bạn không quyền thực hiện thao tác này';
+  static const String EMPTY_ALBUM_TITLE = 'Title album không được để trống';
+  static const String INVALID_ALBUM_FOLDER =
+      'Đường dẫn đến thư mục album không hợp lệ';
+  static const String INVALID_AUTHOR_IMAGE_FOLDER =
+      'Đường dẫn đến thư mục chứa ảnh tác giả không hợp lệ';
 }

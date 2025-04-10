@@ -30,9 +30,13 @@ Future<Response> onRequest(RequestContext context) async {
 
   try {
     userData = decodeResetToken(token);
-    if (userData == null || userData['checkOtp'] != "true") {
+    final checkOtp = userData?['checkOtp'];
+
+    if (userData == null || !(checkOtp == true || checkOtp == 'true')) {
       throw CustomHttpException(
-          ErrorMessage.TOKEN_INVALID, HttpStatus.unauthorized);
+        ErrorMessage.TOKEN_INVALID,
+        HttpStatus.unauthorized,
+      );
     }
   } catch (e) {
     return Response.json(
@@ -56,13 +60,11 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   final body = await context.request.json() as Map<String, dynamic>;
-  final currentPassword = body['currentPassword']?.toString();
+
   final newPassword = body['newPassword']?.toString();
   final confirmPassword = body['confirmPassword']?.toString();
 
-  if (currentPassword == null ||
-      newPassword == null ||
-      confirmPassword == null) {
+  if (newPassword == null || confirmPassword == null) {
     return AppResponse().error(HttpStatus.badRequest, ErrorMessage.REQUIRED);
   }
 
@@ -71,7 +73,6 @@ Future<Response> onRequest(RequestContext context) async {
 
     await userController.resetPassword(
       user.id!,
-      currentPassword,
       newPassword,
       confirmPassword,
     );

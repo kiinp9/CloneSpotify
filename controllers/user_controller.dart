@@ -127,8 +127,63 @@ class UserController {
     return updatedUser;
   }
 
-  Future<void> resetPassword(int id, String currentPassword, String newPassword,
-      String confirmPassword) async {
+  Future<void> resetPassword(
+      int id, String newPassword, String confirmPassword) async {
+    final completer = Completer<void>();
+    final errMsgList = <String>[];
+
+    if (isNullOrEmpty(newPassword)) {
+      errMsgList.add(ErrorMessage.REQUIRED);
+    }
+    if (isNullOrEmpty(confirmPassword)) {
+      errMsgList.add(ErrorMessage.REQUIRED);
+    }
+    if (!isValidPassword(newPassword)) {
+      errMsgList.add(ErrorMessage.PASSWORD_IS_NOT_LONG_ENOUGH);
+    }
+    if (!isStrongPassword(newPassword)) {
+      errMsgList.add(ErrorMessage.PASSWORD_INVALID);
+    }
+    if (newPassword != confirmPassword) {
+      errMsgList.add(ErrorMessage.PASSWORDS_DO_NOT_MATCH);
+    }
+
+    if (errMsgList.isNotEmpty) {
+      final errors = errMsgList.join('; ');
+      return Future.error(CustomHttpException(errors, HttpStatus.badRequest));
+    }
+
+    try {
+      final userDb = await _userRepository.findUserById(id);
+      if (userDb == null) {
+        throw CustomHttpException(
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound);
+      }
+
+      // Nếu mật khẩu mới trùng với mật khẩu cũ (sau khi hash), báo lỗi
+      if (verifyPassword(newPassword, userDb.password!)) {
+        throw CustomHttpException(
+          ErrorMessage.PASSWORD_CANNOT_BE_THE_SAME,
+          HttpStatus.badRequest,
+        );
+      }
+
+      await _userRepository.updatePassword(id, genPassword(newPassword));
+
+      completer.complete();
+    } catch (e) {
+      if (e is CustomHttpException) {
+        return Future.error(e);
+      }
+      return Future.error(CustomHttpException(
+          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+    }
+
+    return completer.future;
+  }
+
+  Future<void> userResetPassword(int id, String currentPassword,
+      String newPassword, String confirmPassword) async {
     final completer = Completer<void>();
     final errMsgList = <String>[];
 

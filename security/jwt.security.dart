@@ -22,7 +22,7 @@ class JwtService {
         'email': user.email,
         'roleId': user.roleId,
         'roleName': user.role?.name,
-        'tokenVersion': tokenVersion, // Thêm tokenVersion vào payload
+        'tokenVersion': tokenVersion,
         'exp': DateTime.now()
                 .add(Duration(seconds: JwtConfig.accessTokenExpiry))
                 .millisecondsSinceEpoch ~/

@@ -27,7 +27,7 @@ Future<Response> onRequest(RequestContext context) async {
   try {
     final googleUser = await GoogleSecurity.verifyGoogleToken(
         body['idToken']?.toString() ?? '');
-    print('Google User: $googleUser');
+
     if (googleUser == null) {
       return AppResponse()
           .error(HttpStatus.unauthorized, ErrorMessage.ID_TOKEN_INVALID);
@@ -64,7 +64,6 @@ Future<Response> onRequest(RequestContext context) async {
       status: 1,
       roleId: 2,
     );
-    print('fullName: ${googleUser['name']}');
 
     final savedUser = await userController.registerGoogleUser(newUser);
     final token = await jwtService.generateTokenJwt(savedUser);

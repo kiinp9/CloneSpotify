@@ -208,7 +208,7 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl
+        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,albumId
         FROM music
         WHERE id = @id
       '''),
@@ -229,6 +229,7 @@ class MusicRepository implements IMusicRepo {
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
+        albumId: musicRow[8] as int,
       );
 
       final authorResult = await _db.executor.execute(
@@ -287,7 +288,7 @@ class MusicRepository implements IMusicRepo {
       SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl 
       FROM music 
             WHERE LOWER(title) = LOWER(@title)
-
+      WHERE title = @title 
     '''),
         parameters: {'title': title},
       );

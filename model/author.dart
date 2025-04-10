@@ -8,7 +8,7 @@ class Author {
     this.avatarUrl,
     this.createdAt,
     this.updatedAt,
-    this.music = const [],
+    this.musics = const [],
   });
   int? id;
   String? name;
@@ -16,7 +16,7 @@ class Author {
   String? avatarUrl;
   DateTime? createdAt;
   DateTime? updatedAt;
-  List<Music> music;
+  List<Music> musics;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -25,13 +25,13 @@ class Author {
         'avatarUrl': avatarUrl,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
-        'music': music.map((m) => m.toJson()).toList(),
+        'music': musics.map((m) => m.toJson()).toList(),
       };
 
   @override
   String toString() {
     return '''
-{id =$id, name= $name, description= $description, avatarUrl= $avatarUrl,createdAt= $createdAt, updatedAt= $updatedAt,music: ${music.map((m) => m.id).toList()}
+{id =$id, name= $name, description= $description, avatarUrl= $avatarUrl,createdAt= $createdAt, updatedAt= $updatedAt,music: ${musics.map((m) => m.title).toList()}
 ''';
   }
 }

@@ -29,7 +29,7 @@ Future<Response> onRequest(RequestContext context) async {
         'createdAt': result?.createdAt?.toIso8601String(),
         'updatedAt': result?.updatedAt?.toIso8601String(),
       },
-      'music': result?.music?.map((music) {
+      'music': result?.musics?.map((music) {
         return {
           'id': music.id,
           'title': music.title,

@@ -53,7 +53,7 @@ class AuthorRepository implements IAuthorRepo {
         parameters: {'id': id},
       );
 
-      author.music = musicResult.map((musicRow) {
+      author.musics = musicResult.map((musicRow) {
         return Music(
           id: musicRow[0] as int,
           title: musicRow[1] as String,
@@ -105,7 +105,7 @@ SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic,
         parameters: {'authorId': author.id},
       );
 
-      author.music = musicResult.map((musicRow) {
+      author.musics = musicResult.map((musicRow) {
         return Music(
           id: musicRow[0] as int,
           title: musicRow[1] as String,

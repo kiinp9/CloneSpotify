@@ -17,7 +17,7 @@ Future<Response> onRequest(RequestContext context) async {
 
   final user = context.read<User?>();
   if (user == null) {
-    return AppResponse().error(HttpStatus.unauthorized, 'User not found.');
+    return AppResponse().error(HttpStatus.unauthorized, ErrorMessage.USER_NOT_FOUND);
   }
 
   try {
