@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:postgres/postgres.dart';
 
 import '../database/postgres.dart';
+import '../model/album.dart';
 import '../model/author.dart';
 import '../model/music.dart';
 import '../exception/config.exception.dart';
@@ -29,7 +30,8 @@ class AuthorRepository implements IAuthorRepo {
       );
 
       if (authorResult.isEmpty || authorResult.first.isEmpty) {
-        return null;
+        throw const CustomHttpException(
+            ErrorMessage.AUTHOR_NOT_FOUND, HttpStatus.notFound);
       }
 
       final authorRow = authorResult.first;
@@ -41,7 +43,30 @@ class AuthorRepository implements IAuthorRepo {
         createdAt: _parseDate(authorRow[4]),
         updatedAt: _parseDate(authorRow[5]),
       );
-
+      final albumResult = await _db.executor.execute(
+        Sql.named('''
+SELECT al.id,
+  al.albumTitle,
+  al.description,
+  al.linkUrlImageAlbum,
+  al.createdAt,
+  al.updatedAt
+  FROM album al
+  JOIN album_author ala ON al.id = ala.albumId
+  WHERE ala.authorId = @id
+'''),
+        parameters: {'id': id},
+      );
+      author.albums = albumResult.map((albumRow) {
+        return Album(
+          id: albumRow[0] as int,
+          albumTitle: albumRow[1] as String,
+          description: albumRow[2] as String,
+          linkUrlImageAlbum: albumRow[3] as String,
+          createdAt: _parseDate(albumRow[4]),
+          updatedAt: _parseDate(albumRow[5]),
+        );
+      }).toList();
       final musicResult = await _db.executor.execute(
         Sql.named('''
         SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, 
@@ -68,8 +93,13 @@ class AuthorRepository implements IAuthorRepo {
 
       return author;
     } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
       throw CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
     }
   }
 
@@ -83,6 +113,10 @@ WHERE LOWER(name) = LOWER(@name)
 '''),
         parameters: {'name': name},
       );
+      if (authorResult.isEmpty || authorResult.first.isEmpty) {
+        throw const CustomHttpException(
+            ErrorMessage.AUTHOR_NOT_FOUND, HttpStatus.notFound);
+      }
 
       final row = authorResult.first;
       final author = Author(
@@ -93,6 +127,30 @@ WHERE LOWER(name) = LOWER(@name)
         createdAt: _parseDate(row[4]),
         updatedAt: _parseDate(row[5]),
       );
+      final albumResult = await _db.executor.execute(
+        Sql.named('''
+SELECT al.id,
+  al.albumTitle,
+  al.description,
+  al.linkUrlImageAlbum,
+  al.createdAt,
+  al.updatedAt
+  FROM album al
+  JOIN album_author ala ON al.id = ala.albumId
+  WHERE ala.authorId = @authorId
+'''),
+        parameters: {'authorId': author.id},
+      );
+      author.albums = albumResult.map((albumRow) {
+        return Album(
+          id: albumRow[0] as int,
+          albumTitle: albumRow[1] as String,
+          description: albumRow[2] as String,
+          linkUrlImageAlbum: albumRow[3] as String,
+          createdAt: _parseDate(albumRow[4]),
+          updatedAt: _parseDate(albumRow[5]),
+        );
+      }).toList();
 
       final musicResult = await _db.executor.execute(
         Sql.named('''
@@ -119,8 +177,13 @@ SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic,
       }).toList();
       return author;
     } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
       throw CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
     }
   }
 

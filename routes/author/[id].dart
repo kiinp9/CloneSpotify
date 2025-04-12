@@ -4,6 +4,7 @@ import 'package:dart_frog/dart_frog.dart';
 
 import '../../constant/config.message.dart';
 import '../../controllers/author_controller.dart';
+import '../../exception/config.exception.dart';
 import '../../model/response.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
@@ -25,6 +26,16 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'createdAt': result?.createdAt?.toIso8601String(),
         'updatedAt': result?.updatedAt?.toIso8601String(),
       },
+      'albums': result?.albums?.map((album) {
+        return {
+          'id': album.id,
+          'albumTitle': album.albumTitle,
+          'description': album.description,
+          'linkUrlImageAlbum': album.linkUrlImageAlbum,
+          'createdAt': album.createdAt?.toIso8601String(),
+          'updatedAt': album.updatedAt?.toIso8601String(),
+        };
+      }).toList(),
       'music': result?.musics?.map((music) {
         return {
           'id': music.id,
@@ -39,6 +50,12 @@ Future<Response> onRequest(RequestContext context, String id) async {
       }).toList(),
     });
   } catch (e) {
-    return AppResponse().error(HttpStatus.internalServerError, e.toString());
+    if (e is CustomHttpException) {
+      return AppResponse().error(e.statusCode, e.message);
+    }
+    return AppResponse().error(
+      HttpStatus.internalServerError,
+      ErrorMessageSQL.SQL_QUERY_ERROR,
+    );
   }
 }

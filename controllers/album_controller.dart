@@ -74,4 +74,9 @@ class AlbumController {
     final album = await _albumRepository.findAlbumById(id);
     return album;
   }
+
+  Future<Album?> findAlbumByAlbumTitle(String albumTitle) async {
+    final album = await _albumRepository.findAlbumByAlbumTitle(albumTitle);
+    return album;
+  }
 }

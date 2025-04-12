@@ -58,4 +58,7 @@ class ErrorMessage {
       'Đường dẫn đến thư mục album không hợp lệ';
   static const String INVALID_AUTHOR_IMAGE_FOLDER =
       'Đường dẫn đến thư mục chứa ảnh tác giả không hợp lệ';
+  static const String MUSIC_NOT_FOUND = 'Không tìm thấy bài hát theo yêu cầu';
+  static const String AUTHOR_NOT_FOUND = 'Không tìm thầy nhạc sĩ theo yêu cầu';
+  static const String ALBUM_NOT_FOUND = 'Không tìm thấy album theo yêu cầu';
 }

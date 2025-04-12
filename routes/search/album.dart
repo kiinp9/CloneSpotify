@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 
 import '../../constant/config.message.dart';
-import '../../controllers/music_controller.dart';
+import '../../controllers/album_controller.dart';
 import '../../exception/config.exception.dart';
 import '../../model/response.dart';
 
@@ -12,27 +12,33 @@ Future<Response> onRequest(RequestContext context) async {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
-
   try {
-    final musicController = context.read<MusicController>();
+    final albumController = context.read<AlbumController>();
 
     final body = await context.request.json();
-
-    final result = await musicController.findMusicByTitle(
-      body['title']?.toString() ?? '',
+    final result = await albumController.findAlbumByAlbumTitle(
+      body['albumTitle']?.toString() ?? '',
     );
 
     return AppResponse().ok(HttpStatus.ok, {
-      'music': {
+      'album': {
         'id': result?.id,
-        'title': result?.title,
+        'albumTitle': result?.albumTitle,
         'description': result?.description,
-        'broadcastTime': result?.broadcastTime,
-        'linkUrlMusic': result?.linkUrlMusic,
-        'createdAt': result?.createdAt?.toIso8601String(),
-        'updatedAt': result?.updatedAt?.toIso8601String(),
-        'imageUrl': result?.imageUrl,
+        'linkUrlImageAlbum': result?.linkUrlImageAlbum,
       },
+      'musics': result?.musics?.map((music) {
+        return {
+          'id': music.id,
+          'title': music.title,
+          'description': music.description,
+          'broadcastTime': music.broadcastTime,
+          'linkUrlMusic': music.linkUrlMusic,
+          'createdAt': music.createdAt?.toIso8601String(),
+          'updatedAt': music.updatedAt?.toIso8601String(),
+          'imageUrl': music.imageUrl,
+        };
+      }).toList(),
       'authors': result?.authors?.map((author) {
         return {
           'id': author.id,

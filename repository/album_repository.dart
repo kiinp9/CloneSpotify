@@ -21,6 +21,7 @@ abstract class IAlbumRepo {
       Author author,
       List<Category> categories);
   Future<Album?> findAlbumById(int id);
+  Future<Album?> findAlbumByAlbumTitle(String albumTitle);
 }
 
 class AlbumRepository implements IAlbumRepo {
@@ -343,7 +344,8 @@ WHERE id = @id
       );
 
       if (albumResult.isEmpty || albumResult.first.isEmpty) {
-        return null;
+        throw const CustomHttpException(
+            ErrorMessage.ALBUM_NOT_FOUND, HttpStatus.notFound);
       }
 
       final albumRow = albumResult.first;
@@ -421,8 +423,113 @@ WHERE m.albumId = @id
 
       return album;
     } catch (e) {
-      throw const CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<Album?> findAlbumByAlbumTitle(String albumTitle) async {
+    try {
+      final albumResult = await _db.executor.execute(
+        Sql.named('''
+SELECT id,albumTitle,description,linkUrlImageAlbum,createdAt,updatedAt
+FROM album
+WHERE LOWER(albumTitle) = LOWER(@albumTitle)
+'''),
+        parameters: {'albumTitle': albumTitle},
+      );
+      if (albumResult.isEmpty || albumResult.first.isEmpty) {
+        throw const CustomHttpException(
+            ErrorMessage.ALBUM_NOT_FOUND, HttpStatus.notFound);
+      }
+
+      final albumRow = albumResult.first;
+      final album = Album(
+        id: albumRow[0] as int,
+        albumTitle: albumRow[1] as String,
+        description: albumRow[2] as String,
+        linkUrlImageAlbum: albumRow[3] as String,
+        createdAt: _parseDate(albumRow[4]),
+        updatedAt: _parseDate(albumRow[5]),
+      );
+      final authorResult = await _db.executor.execute(
+        Sql.named('''
+SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt
+FROM author a
+JOIN album_author ala ON a.id = ala.authorId
+WHERE ala.albumId = @id
+'''),
+        parameters: {'id': album.id},
+      );
+
+      album.authors = authorResult.map((row) {
+        return Author(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          avatarUrl: row[3] as String?,
+          createdAt: _parseDate(row[4]),
+          updatedAt: _parseDate(row[5]),
+        );
+      }).toList();
+
+      final categoryResult = await _db.executor.execute(
+        Sql.named('''
+SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt
+FROM category c
+JOIN album_category alc ON c.id = alc.categoryId
+WHERE alc.albumId = @id
+'''),
+        parameters: {'id': album.id},
+      );
+
+      album.categories = categoryResult.map((row) {
+        return Category(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          createdAt: _parseDate(row[3]),
+          updatedAt: _parseDate(row[4]),
+        );
+      }).toList();
+
+      final musicResult = await _db.executor.execute(
+        Sql.named('''
+SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl, m.albumId
+FROM music m
+WHERE m.albumId = @id
+'''),
+        parameters: {'id': album.id},
+      );
+
+      album.musics = musicResult.map((row) {
+        return Music(
+          id: row[0] as int,
+          title: row[1] as String,
+          description: row[2] as String,
+          broadcastTime: row[3] as int,
+          linkUrlMusic: row[4] as String,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
+          imageUrl: row[7] as String,
+        );
+      }).toList();
+
+      return album;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
     }
   }
 

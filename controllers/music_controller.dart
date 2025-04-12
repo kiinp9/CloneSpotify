@@ -95,4 +95,9 @@ class MusicController {
     final music = await _musicRepository.findMusicByTitle(title);
     return music;
   }
+
+  Future<List<Music>> showMusicPaging({int offset = 0, int limit = 10}) async {
+    // Tính toán offset theo công thức phân trang
+    return await _musicRepository.showMusicPaging(offset: offset, limit: limit);
+  }
 }

@@ -16,6 +16,7 @@ abstract class IMusicRepo {
       String imageFilePath, Author author, List<Category> categories);
   Future<Music?> findMusicById(int id);
   Future<Music?> findMusicByTitle(String title);
+  Future<List<Music>> showMusicPaging({int offset = 0, int limit = 10});
 }
 
 class MusicRepository implements IMusicRepo {
@@ -208,15 +209,18 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,albumId
+        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl
         FROM music
         WHERE id = @id
       '''),
         parameters: {'id': id},
       );
 
-      if (musicResult.isEmpty || musicResult.first.isEmpty) {
-        return null;
+      if (musicResult.isEmpty) {
+        throw CustomHttpException(
+          ErrorMessage.MUSIC_NOT_FOUND,
+          HttpStatus.notFound,
+        );
       }
 
       final musicRow = musicResult.first;
@@ -275,8 +279,13 @@ class MusicRepository implements IMusicRepo {
 
       return music;
     } catch (e) {
-      throw const CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
     }
   }
 
@@ -285,16 +294,20 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl 
+      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl
       FROM music 
-            WHERE LOWER(title) = LOWER(@title)
-      WHERE title = @title 
+      WHERE LOWER(title) = LOWER(@title)
     '''),
         parameters: {'title': title},
       );
 
+      if (musicResult.isEmpty) {
+        throw CustomHttpException(
+          ErrorMessage.MUSIC_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
       final musicRow = musicResult.first;
-
       final music = Music(
         id: musicRow[0] as int,
         title: musicRow[1] as String,
@@ -349,8 +362,75 @@ class MusicRepository implements IMusicRepo {
 
       return music;
     } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
       throw CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<List<Music>> showMusicPaging({int offset = 0, int limit = 10}) async {
+    try {
+      final musicResult = await _db.executor.execute(
+        Sql.named('''
+        SELECT id, title, imageUrl
+        FROM music
+        ORDER BY id ASC
+        LIMIT @limit
+        OFFSET @offset
+      '''),
+        parameters: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (musicResult.isEmpty) {
+        return [];
+      }
+
+      final List<Music> musics = [];
+
+      for (final row in musicResult) {
+        final music = Music(
+          id: row[0] as int,
+          title: row[1] as String,
+          imageUrl: row[2] as String,
+        );
+
+        final authorResult = await _db.executor.execute(
+          Sql.named('''
+          SELECT a.id, a.name
+          FROM author a
+          JOIN music_author ma ON a.id = ma.authorId
+          WHERE ma.musicId = @musicId
+        '''),
+          parameters: {'musicId': music.id},
+        );
+
+        music.authors = authorResult.map((row) {
+          return Author(
+            id: row[0] as int,
+            name: row[1] as String,
+          );
+        }).toList();
+
+        musics.add(music);
+      }
+
+      return musics;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
     }
   }
 
