@@ -379,7 +379,7 @@ class MusicRepository implements IMusicRepo {
         Sql.named('''
         SELECT id, title, imageUrl
         FROM music
-        ORDER BY id ASC
+  ORDER BY RANDOM()
         LIMIT @limit
         OFFSET @offset
       '''),
