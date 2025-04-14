@@ -3,6 +3,12 @@ class ErrorMessageSQL {
   static const String SAVE_USER_FAILED = 'Lỗi khi lưu người dùng';
 }
 
+class ErrorMessageRoute {
+  static const String PARAMETER_QUERY_ROUTER_NOT_NULL =
+      'Lỗi parameter query không được rỗng';
+  static const String ROUTER_ERROR = 'Lỗi router';
+}
+
 class ErrorMessage {
   static const String EMAIL_INVALID = 'Định dạng email không hợp lệ!';
   static const String PASSWORD_REQUIRED = 'Yêu cầu nhập mật khẩu!';

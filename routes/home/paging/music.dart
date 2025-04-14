@@ -2,12 +2,12 @@ import 'dart:io';
 
 import 'package:dart_frog/dart_frog.dart';
 
-import '../../constant/config.message.dart';
-import '../../controllers/music_controller.dart';
-import '../../model/response.dart';
+import '../../../constant/config.message.dart';
+import '../../../controllers/music_controller.dart';
+import '../../../model/response.dart';
 
 Future<Response> onRequest(RequestContext context) async {
-  if (context.request.method != HttpMethod.get) {
+  if (context.request.method.value != 'GET') {
     return AppResponse().error(
       HttpStatus.methodNotAllowed,
       ErrorMessage.MSG_METHOD_NOT_ALLOW,
@@ -16,7 +16,6 @@ Future<Response> onRequest(RequestContext context) async {
 
   final musicController = context.read<MusicController>();
 
-  final uri = context.request.uri;
   final offset =
       int.tryParse(context.request.uri.queryParameters['offset'] ?? '0') ?? 0;
   final limit =

@@ -124,7 +124,7 @@ class CloudinaryService {
     if (albumImageFile.existsSync()) {
       final imageUrl = await _uploadFileToSpecificFolder(
         albumImageFile.path,
-        "$albumName/albumImages", // Folder albumImages cho ảnh đại diện album
+        "$albumName/albumImages",
       );
       albumUploads["albumImage"] = imageUrl;
     }
@@ -158,7 +158,6 @@ class CloudinaryService {
           songDir.listSync(recursive: false).whereType<File>().toList();
       albumUploads["songs"][songName] = {
         "music": <String?>[],
-
       };
 
       for (final file in files) {

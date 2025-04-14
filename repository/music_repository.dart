@@ -17,6 +17,9 @@ abstract class IMusicRepo {
   Future<Music?> findMusicById(int id);
   Future<Music?> findMusicByTitle(String title);
   Future<List<Music>> showMusicPaging({int offset = 0, int limit = 10});
+  Future<List<Music>> showMusicByCategory(int categoryId);
+  Future<List<Category>> showCategoryPaging({int offset = 0, int limit = 5});
+  Future<Music?> nextMusic(int currentMusicId);
 }
 
 class MusicRepository implements IMusicRepo {
@@ -233,7 +236,6 @@ class MusicRepository implements IMusicRepo {
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
-        albumId: musicRow[8] as int,
       );
 
       final authorResult = await _db.executor.execute(
@@ -423,6 +425,208 @@ class MusicRepository implements IMusicRepo {
       }
 
       return musics;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<Music?> nextMusic(int currentMusicId) async {
+    try {
+      final authorResult = await _db.executor.execute(
+        Sql.named('''
+        SELECT authorId
+        FROM music_author
+        WHERE musicId = @musicId
+        LIMIT 1
+      '''),
+        parameters: {'musicId': currentMusicId},
+      );
+
+      if (authorResult.isEmpty) {
+        return null;
+      }
+
+      final authorId = authorResult.first[0] as int;
+
+      final nextMusicResult = await _db.executor.execute(
+        Sql.named('''
+        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl
+        FROM music m
+        JOIN music_author ma ON m.id = ma.musicId
+        WHERE ma.authorId = @authorId
+          AND m.id != @currentMusicId
+        ORDER BY RANDOM()
+        LIMIT 1;
+      '''),
+        parameters: {
+          'authorId': authorId,
+          'currentMusicId': currentMusicId,
+        },
+      );
+
+      if (nextMusicResult.isEmpty) {
+        throw CustomHttpException(
+          ErrorMessage.MUSIC_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
+
+      final musicRow = nextMusicResult.first;
+
+      final music = Music(
+        id: musicRow[0] as int,
+        title: musicRow[1] as String,
+        description: musicRow[2] as String,
+        broadcastTime: musicRow[3] as int,
+        linkUrlMusic: musicRow[4] as String,
+        createdAt: _parseDate(musicRow[5]),
+        updatedAt: _parseDate(musicRow[6]),
+        imageUrl: musicRow[7] as String,
+      );
+
+      final author = await _db.executor.execute(
+        Sql.named('''
+        SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt
+        FROM author a
+        JOIN music_author ma ON a.id = ma.authorId
+        WHERE ma.musicId = @musicId
+      '''),
+        parameters: {'musicId': music.id},
+      );
+
+      music.authors = author.map((row) {
+        return Author(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          avatarUrl: row[3] as String?,
+          createdAt: _parseDate(row[4]),
+          updatedAt: _parseDate(row[5]),
+        );
+      }).toList();
+
+      final categoryResult = await _db.executor.execute(
+        Sql.named('''
+        SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt
+        FROM category c
+        JOIN music_category mc ON c.id = mc.categoryId
+        WHERE mc.musicId = @musicId
+      '''),
+        parameters: {'musicId': music.id},
+      );
+
+      music.categories = categoryResult.map((row) {
+        return Category(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          createdAt: _parseDate(row[3]),
+          updatedAt: _parseDate(row[4]),
+        );
+      }).toList();
+
+      return music;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<List<Music>> showMusicByCategory(int categoryId) async {
+    try {
+      final musicResult = await _db.executor.execute(
+        Sql.named('''
+SELECT m.id,m.title,m.imageUrl
+FROM music m 
+JOIN music_category mc ON m.id = mc.musicId
+WHERE mc.categoryId = @categoryId
+'''),
+        parameters: {'categoryId': categoryId},
+      );
+      if (musicResult.isEmpty) {
+        return [];
+      }
+
+      final List<Music> musics = [];
+
+      for (final row in musicResult) {
+        final music = Music(
+          id: row[0] as int,
+          title: row[1] as String,
+          imageUrl: row[2] as String,
+        );
+
+        final authorResult = await _db.executor.execute(
+          Sql.named('''
+          SELECT a.id, a.name
+          FROM author a
+          JOIN music_author ma ON a.id = ma.authorId
+          WHERE ma.musicId = @musicId
+        '''),
+          parameters: {'musicId': music.id},
+        );
+
+        music.authors = authorResult.map((row) {
+          return Author(
+            id: row[0] as int,
+            name: row[1] as String,
+          );
+        }).toList();
+
+        musics.add(music);
+      }
+
+      return musics;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<List<Category>> showCategoryPaging(
+      {int offset = 0, int limit = 5}) async {
+    try {
+      final categoryResult = await _db.executor.execute(
+        Sql.named('''
+SELECT id, name
+FROM category
+  ORDER BY RANDOM()
+        LIMIT @limit
+        OFFSET @offset
+'''),
+        parameters: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+      if (categoryResult.isEmpty) {
+        return [];
+      }
+      final categories = categoryResult.map((row) {
+        return Category(
+          id: row[0] as int,
+          name: row[1] as String,
+        );
+      }).toList();
+
+      return categories;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
