@@ -11,6 +11,7 @@ import '../constant/config.message.dart';
 abstract class IAuthorRepo {
   Future<Author?> findAuthorById(int id);
   Future<Author?> findAuthorByName(String name);
+  Future<List<Author>> showAuthorPaging({int offset = 0, int limit = 8});
 }
 
 class AuthorRepository implements IAuthorRepo {
@@ -176,6 +177,46 @@ SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic,
         );
       }).toList();
       return author;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<List<Author>> showAuthorPaging({int offset = 0, int limit = 8}) async {
+    try {
+      final authorResult = await _db.executor.execute(Sql.named('''
+SELECT id, name,avatarUrl
+FROM author
+ORDER BY RANDOM()
+LIMIT @limit
+OFFSET @offset
+'''), parameters: {
+        'limit': limit,
+        'offset': offset,
+      });
+
+      if (authorResult.isEmpty) {
+        return [];
+      }
+      final List<Author> authors = [];
+
+      for (final row in authorResult) {
+        final author = Author(
+          id: row[0] as int,
+          name: row[1] as String,
+          avatarUrl: row[2] as String,
+        );
+
+        authors.add(author);
+      }
+      return authors;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;

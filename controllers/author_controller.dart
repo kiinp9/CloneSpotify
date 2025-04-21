@@ -14,4 +14,10 @@ class AuthorController {
     final author = await _authorRepository.findAuthorByName(name);
     return author;
   }
+
+  Future<List<Author>> showAuthorPaging({int offset = 0, int limit = 8}) async {
+    final author =
+        await _authorRepository.showAuthorPaging(offset: offset, limit: limit);
+    return author;
+  }
 }
