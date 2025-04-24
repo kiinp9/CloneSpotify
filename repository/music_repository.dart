@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:async';
-import 'dart:typed_data';
+
 import 'package:postgres/postgres.dart';
 import '../constant/config.message.dart';
 import '../database/postgres.dart';
@@ -212,7 +212,7 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl
+        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount
         FROM music
         WHERE id = @id
       '''),
@@ -236,6 +236,7 @@ class MusicRepository implements IMusicRepo {
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
+        listenCount: musicRow[8] as int,
       );
 
       final authorResult = await _db.executor.execute(
@@ -296,7 +297,7 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl
+      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount
       FROM music 
       WHERE LOWER(title) = LOWER(@title)
     '''),
@@ -319,6 +320,7 @@ class MusicRepository implements IMusicRepo {
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
+        listenCount: musicRow[8] as int,
       );
 
       final authorResult = await _db.executor.execute(
@@ -456,7 +458,7 @@ class MusicRepository implements IMusicRepo {
 
       final nextMusicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl
+        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl,m.listenCount
         FROM music m
         JOIN music_author ma ON m.id = ma.musicId
         WHERE ma.authorId = @authorId
@@ -488,7 +490,11 @@ class MusicRepository implements IMusicRepo {
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
+        listenCount: musicRow[8] as int,
       );
+      if (music.id != null) {
+        await incrementListenCount(music.id!);
+      }
 
       final author = await _db.executor.execute(
         Sql.named('''
@@ -633,6 +639,26 @@ FROM category
       }
       throw CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<void> incrementListenCount(int musicId) async {
+    try {
+      await _db.executor.execute(
+        Sql.named('''
+        UPDATE music
+        SET listenCount = listenCount + 1
+        WHERE id = @id
+      '''),
+        parameters: {
+          'id': musicId,
+        },
+      );
+    } catch (e) {
+      throw CustomHttpException(
+        "Lỗi khi cập nhật số lần nghe: $e",
         HttpStatus.internalServerError,
       );
     }

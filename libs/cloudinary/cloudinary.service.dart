@@ -182,4 +182,16 @@ class CloudinaryService {
 
     return albumUploads;
   }
+
+  //Upload ảnh playlist
+  Future<List<String?>> uploadImagePlaylist(
+      List<String> imagePlaylistPaths) async {
+    final result = <String?>[];
+    for (final path in imagePlaylistPaths) {
+      final url = await _uploadFileToSpecificFolder(path, "imagePlaylist");
+      result.add(url);
+    }
+
+    return result;
+  }
 }

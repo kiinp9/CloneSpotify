@@ -114,4 +114,8 @@ class MusicController {
     final music = await _musicRepository.nextMusic(currentMusicId);
     return music;
   }
+
+  Future<void> incrementListenCount(int musicId) async {
+    return await _musicRepository.incrementListenCount(musicId);
+  }
 }

@@ -15,7 +15,13 @@ Future<Response> onRequest(RequestContext context, String id) async {
   final musicController = context.read<MusicController>();
 
   final id = int.tryParse(context.request.uri.pathSegments.last);
+  final musicId = id;
+  if (musicId == null) {
+    return AppResponse()
+        .error(HttpStatus.badRequest, ErrorMessage.MUSIC_NOT_FOUND);
+  }
   try {
+    await musicController.incrementListenCount(musicId);
     final result = await musicController.findMusicById(id ?? 0);
     return AppResponse().ok(HttpStatus.ok, {
       'music': {
@@ -27,6 +33,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'createdAt': result?.createdAt?.toIso8601String(),
         'updatedAt': result?.updatedAt?.toIso8601String(),
         'imageUrl': result?.imageUrl,
+        'listenCount': result?.listenCount,
       },
       'authors': result?.authors?.map((author) {
         return {

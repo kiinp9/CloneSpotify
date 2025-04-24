@@ -14,7 +14,9 @@ class Music {
     this.updatedAt,
     this.imageUrl,
     this.albumId,
+    this.listenCount = 0,
   });
+
   int? id;
   String? title;
   String? description;
@@ -26,6 +28,7 @@ class Music {
   DateTime? updatedAt;
   String? imageUrl;
   int? albumId;
+  int listenCount;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -39,14 +42,16 @@ class Music {
         'updatedAt': updatedAt?.toIso8601String(),
         'imageUrl': imageUrl,
         'albumId': albumId,
+        'listenCount': listenCount,
       };
 
   @override
   String toString() {
     return '''
-{id= $id, title= $title, description= $description,broadcastTime= $broadcastTime,linkUrlMusic= $linkUrlMusic, authors: ${authors.map((a) => a.name).toList()},
-      categories: ${categories.map((c) => c.name).toList()},
-      createdAt = $createdAt, updatedAt= $updatedAt,imageUrl: $imageUrl,albumId: $albumId}
+{id= $id, title= $title, description= $description, broadcastTime= $broadcastTime, linkUrlMusic= $linkUrlMusic, 
+authors: ${authors.map((a) => a.name).toList()},
+categories: ${categories.map((c) => c.name).toList()},
+createdAt = $createdAt, updatedAt= $updatedAt, imageUrl: $imageUrl, albumId: $albumId, listenCount: $listenCount}
 ''';
   }
 }

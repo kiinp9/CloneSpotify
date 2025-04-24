@@ -5,7 +5,6 @@ import '../../constant/config.message.dart';
 import '../../controllers/user_controller.dart';
 import '../../exception/config.exception.dart';
 import '../../model/response.dart';
-import '../../model/users.dart';
 import '../../security/google.security.dart';
 import '../../security/jwt.security.dart';
 
@@ -26,52 +25,26 @@ Future<Response> onRequest(RequestContext context) async {
 
   try {
     final googleUser = await GoogleSecurity.verifyGoogleToken(
-        body['idToken']?.toString() ?? '');
+      body['idToken'].toString(),
+    );
+
     if (googleUser == null) {
       return AppResponse()
           .error(HttpStatus.unauthorized, ErrorMessage.ID_TOKEN_INVALID);
     }
 
     final email = googleUser['email']!;
-    final name = googleUser['name'] ?? '';
 
-    var existingUser = await userController.findUserByEmail(email);
-    if (existingUser != null) {
-      final token = await jwtService.generateTokenJwt(existingUser);
-      return AppResponse().ok(HttpStatus.ok, {
-        'user': existingUser.toJson(),
-        'token': token,
-      });
+    final existingUser = await userController.findUserByEmail(email);
+    if (existingUser == null) {
+      return AppResponse()
+          .error(HttpStatus.notFound, ErrorMessage.ID_TOKEN_INVALID);
     }
 
-    if (body['userName'] == null ||
-        body['gender'] == null ||
-        body['birthday'] == null) {
-      return AppResponse().error(HttpStatus.badRequest, ErrorMessage.REQUIRED);
-    }
-
-    final newUser = User(
-      email: email,
-      fullName: name,
-      userName: body['userName'].toString(),
-      birthday: body['birthday'] != null
-          ? DateTime.tryParse(body['birthday'].toString())
-          : null,
-      gender: GenderE.values.firstWhere(
-        (e) => e.toString().split('.').last == body['gender'].toString(),
-        orElse: () => GenderE.preferNotToSay,
-      ),
-      password: null,
-      GoogleStatus: 2,
-      status: 1,
-      roleId: 2,
-    );
-
-    final savedUser = await userController.registerGoogleUser(newUser);
-    final token = await jwtService.generateTokenJwt(savedUser);
+    final token = await jwtService.generateTokenJwt(existingUser);
 
     return AppResponse().ok(HttpStatus.ok, {
-      'user': savedUser.toJson(),
+      'user': existingUser.toJson(),
       'token': token,
     });
   } catch (e) {

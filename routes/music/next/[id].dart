@@ -19,6 +19,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return AppResponse()
         .error(HttpStatus.internalServerError, ErrorMessageRoute.ROUTER_ERROR);
   }
+
   try {
     final result = await musicController.nextMusic(currentMusicId);
     return AppResponse().ok(HttpStatus.ok, {
@@ -31,6 +32,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'createdAt': result?.createdAt?.toIso8601String(),
         'updatedAt': result?.updatedAt?.toIso8601String(),
         'imageUrl': result?.imageUrl,
+        'listenCount': result?.listenCount,
       },
       'authors': result?.authors?.map((author) {
         return {
