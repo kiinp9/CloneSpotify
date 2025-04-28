@@ -611,12 +611,12 @@ WHERE mc.categoryId = @categoryId
     try {
       final categoryResult = await _db.executor.execute(
         Sql.named('''
-SELECT id, name
-FROM category
-  ORDER BY RANDOM()
-        LIMIT @limit
-        OFFSET @offset
-'''),
+  SELECT id, name
+  FROM category
+    ORDER BY RANDOM()
+          LIMIT @limit
+          OFFSET @offset
+  '''),
         parameters: {
           'limit': limit,
           'offset': offset,

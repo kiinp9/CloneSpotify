@@ -13,26 +13,40 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
+
   final musicController = context.read<MusicController>();
   final user = context.read<User?>();
+
   if (user == null || user.id == null) {
     return AppResponse().error(HttpStatus.forbidden, ErrorMessage.FORBIDDEN);
   }
 
-  final currentMusicId = int.tryParse(context.request.uri.pathSegments.last);
-  if (currentMusicId == null) {
+  final musicId = int.tryParse(context.request.uri.pathSegments.last);
+
+  if (musicId == null) {
     return AppResponse()
-        .error(HttpStatus.internalServerError, ErrorMessageRoute.ROUTER_ERROR);
+        .error(HttpStatus.badRequest, ErrorMessage.MUSIC_NOT_FOUND);
   }
 
   try {
-    final result = await musicController.nextMusic(currentMusicId);
+    final rewindMusicId =
+        await musicController.rewindMusicFromHistory(user.id!, musicId);
+
+    if (rewindMusicId == null) {
+      return AppResponse()
+          .error(HttpStatus.notFound, ErrorMessage.MUSIC_NOT_FOUND);
+    }
+
+    final result =
+        await musicController.findMusicById(int.parse(rewindMusicId));
+
     if (result == null) {
       return AppResponse()
           .error(HttpStatus.notFound, ErrorMessage.MUSIC_NOT_FOUND);
     }
-    await musicController.playNextMusic(user.id!, result.id.toString());
+
     await musicController.incrementListenCount(result.id!);
+
     return AppResponse().ok(HttpStatus.ok, {
       'music': {
         'id': result.id,

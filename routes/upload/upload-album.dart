@@ -24,8 +24,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
   final body = await context.request.json();
   final albumFolderPath = body['albumFolderPath']?.toString();
-  final avatarPath =
-      body['author']['avatarUrl']?.toString(); // Thêm avatarPath ở đây
+  final avatarPath = body['author']['avatarUrl']?.toString();
 
   if (avatarPath == null) {
     return AppResponse()

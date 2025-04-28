@@ -6,6 +6,7 @@ import '../../../constant/config.message.dart';
 import '../../../controllers/music_controller.dart';
 import '../../../exception/config.exception.dart';
 import '../../../model/response.dart';
+import '../../../model/users.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   if (context.request.method.value != 'GET') {
@@ -13,6 +14,10 @@ Future<Response> onRequest(RequestContext context, String id) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
   final musicController = context.read<MusicController>();
+  final user = context.read<User?>();
+  if (user == null || user.id == null) {
+    return AppResponse().error(HttpStatus.forbidden, ErrorMessage.FORBIDDEN);
+  }
 
   final id = int.tryParse(context.request.uri.pathSegments.last);
   final musicId = id;
@@ -21,6 +26,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         .error(HttpStatus.badRequest, ErrorMessage.MUSIC_NOT_FOUND);
   }
   try {
+    await musicController.setPlayMusicHistory(user.id!, musicId.toString());
     await musicController.incrementListenCount(musicId);
     final result = await musicController.findMusicById(id ?? 0);
     return AppResponse().ok(HttpStatus.ok, {

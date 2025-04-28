@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:redis/redis.dart';
 
 import 'iredis.dart';
@@ -25,7 +24,7 @@ class RedisService implements IRedisService {
   Future<void> _connect() async {
     final String redisHost = "localhost";
     final int redisPort = 6379;
-    final String? redisPassword = null;
+    final String? redisPassword = "";
 
     _connection = RedisConnection();
     _command = await _connection!.connect(redisHost, redisPort);
@@ -84,6 +83,56 @@ class RedisService implements IRedisService {
     await _checkConnection();
     final currentVersion = await getTokenVersion(userId) ?? 0;
     await setTokenVersion(userId, currentVersion + 1);
+  }
+
+  Future<void> setPlayMusicHistory(int userId, String musicId) async {
+    await _checkConnection();
+    final key = 'user:$userId:music';
+
+    await _command!.send_object(['LPUSH', key, musicId]);
+    await _command!.send_object(['EXPIRE', key, 7200]);
+  }
+
+  Future<List<String>> getPlayMusicHistory(int userId) async {
+    await _checkConnection();
+    final key = 'user:$userId:music';
+
+    final result = await _command!.send_object(['LRANGE', key, 0, -1]);
+
+    return (result as List).map((e) => e.toString()).toList();
+  }
+
+  Future<void> playNextMusic(int userId, String nextMusicId) async {
+    await setPlayMusicHistory(userId, nextMusicId);
+  }
+
+  Future<String?> rewindMusic(int userId, int currentMusicId) async {
+    await _checkConnection();
+    final key = 'user:$userId:music';
+
+    final result = await _command!.send_object(['LRANGE', key, 0, -1]);
+
+    final List<String> history =
+        (result as List).map((e) => e.toString()).toList();
+
+    final currentIndex = history.indexOf(currentMusicId.toString());
+
+    if (currentIndex == -1) {
+      return null;
+    }
+
+    if (currentIndex + 1 < history.length) {
+      return history[currentIndex + 1];
+    }
+
+    return null;
+  }
+
+  Future<void> deleteHistory(int userId) async {
+    await _checkConnection();
+    final key = 'user:$userId:music';
+
+    await _command!.send_object(['DEL', key]);
   }
 
   Future<void> close() async {

@@ -11,6 +11,7 @@ import '../database/redis.dart';
 import '../libs/cloudinary/cloudinary.service.dart';
 import '../log/log.dart';
 
+import '../main.dart';
 import '../model/roles.dart';
 import '../model/users.dart';
 import '../repository/album_repository.dart';
@@ -29,7 +30,7 @@ Handler middleware(Handler handler) {
   final jwtService = JwtService(redisService);
   final cloudinaryService = CloudinaryService();
   final userController = UserController(userRepository, jwtService);
-  final musicController = MusicController(musicRepository);
+  final musicController = MusicController(musicRepository, redisService);
   final authorController = AuthorController(authorRepository);
   final albumController = AlbumController(albumRepository);
   final jwtMiddleware = createJwtMiddleware(jwtService, redisService);
@@ -66,7 +67,7 @@ Middleware injectionController(JwtService jwtService) {
       return MusicRepository(db);
     })).use(provider<MusicController>((context) {
       final musicRepository = context.read<MusicRepository>();
-      return MusicController(musicRepository);
+      return MusicController(musicRepository, redisService);
     })).use(provider<AuthorController>((context) {
       final authorRepository = context.read<AuthorRepository>();
       return AuthorController(authorRepository);

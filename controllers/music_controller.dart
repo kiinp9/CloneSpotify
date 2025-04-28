@@ -1,4 +1,5 @@
 import '../constant/config.message.dart';
+import '../database/iredis.dart';
 import '../exception/config.exception.dart';
 import '../model/author.dart';
 import '../model/category.dart';
@@ -10,9 +11,10 @@ import 'dart:io';
 import '../validate/strings.dart';
 
 class MusicController {
-  MusicController(this._musicRepository);
+  MusicController(this._musicRepository, this._redisService);
 
   final MusicRepository _musicRepository;
+  final IRedisService _redisService;
 
   Future<int> uploadMusic(
     Music music,
@@ -88,6 +90,7 @@ class MusicController {
 
   Future<Music?> findMusicById(int id) async {
     final music = await _musicRepository.findMusicById(id);
+
     return music;
   }
 
@@ -116,6 +119,28 @@ class MusicController {
   }
 
   Future<void> incrementListenCount(int musicId) async {
-    return await _musicRepository.incrementListenCount(musicId);
+    final music = await _musicRepository.incrementListenCount(musicId);
+    return music;
+  }
+
+  Future<void> setPlayMusicHistory(int userId, String musicId) async {
+    final music = await _redisService.setPlayMusicHistory(userId, musicId);
+    return music;
+  }
+
+  Future<List<String>> getPlayMusicHistory(int userId) async {
+    final music = await _redisService.getPlayMusicHistory(userId);
+    return music;
+  }
+
+  Future<void> playNextMusic(int userId, String nextMusicId) async {
+    final music = await _redisService.playNextMusic(userId, nextMusicId);
+    return music;
+  }
+
+  Future<String?> rewindMusicFromHistory(int userId, int currentMusicId) async {
+    final music = await _redisService.rewindMusic(userId, currentMusicId);
+
+    return music;
   }
 }
