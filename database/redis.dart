@@ -87,10 +87,25 @@ class RedisService implements IRedisService {
 
   Future<void> setPlayMusicHistory(int userId, String musicId) async {
     await _checkConnection();
-    final key = 'user:$userId:music';
+    final historyKey = 'user:$userId:music';
+    final currentKey = 'user:$userId:music:current';
 
-    await _command!.send_object(['LPUSH', key, musicId]);
-    await _command!.send_object(['EXPIRE', key, 7200]);
+    final result = await _command!.send_object(['LRANGE', historyKey, 0, -1]);
+    final history = (result as List).map((e) => e.toString()).toList();
+
+    final current = await getValue(currentKey);
+
+    if (current != null) {
+      final currentIndex = history.indexOf(current);
+      if (currentIndex != -1) {
+        await _command!.send_object(['LTRIM', historyKey, 0, currentIndex]);
+      }
+    }
+
+    await _command!.send_object(['RPUSH', historyKey, musicId]);
+    await _command!.send_object(['SET', currentKey, musicId]);
+    await _command!.send_object(['EXPIRE', historyKey, 7200]);
+    await _command!.send_object(['EXPIRE', currentKey, 7200]);
   }
 
   Future<List<String>> getPlayMusicHistory(int userId) async {
@@ -108,24 +123,22 @@ class RedisService implements IRedisService {
 
   Future<String?> rewindMusic(int userId, int currentMusicId) async {
     await _checkConnection();
-    final key = 'user:$userId:music';
+    final historyKey = 'user:$userId:music';
+    final currentKey = 'user:$userId:music:current';
 
-    final result = await _command!.send_object(['LRANGE', key, 0, -1]);
-
+    final result = await _command!.send_object(['LRANGE', historyKey, 0, -1]);
     final List<String> history =
         (result as List).map((e) => e.toString()).toList();
 
-    final currentIndex = history.indexOf(currentMusicId.toString());
+    final index = history.indexOf(currentMusicId.toString());
 
-    if (currentIndex == -1) {
+    if (index == -1 || index == 0) {
       return null;
     }
 
-    if (currentIndex + 1 < history.length) {
-      return history[currentIndex + 1];
-    }
-
-    return null;
+    final previousId = history[index - 1];
+    await _command!.send_object(['SET', currentKey, previousId]);
+    return previousId;
   }
 
   Future<void> deleteHistory(int userId) async {

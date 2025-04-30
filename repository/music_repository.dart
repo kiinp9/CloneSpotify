@@ -18,7 +18,7 @@ abstract class IMusicRepo {
   Future<Music?> findMusicByTitle(String title);
   Future<List<Music>> showMusicPaging({int offset = 0, int limit = 10});
   Future<List<Music>> showMusicByCategory(int categoryId);
-  Future<List<Category>> showCategoryPaging({int offset = 0, int limit = 5});
+
   Future<Music?> nextMusic(int currentMusicId);
 }
 
@@ -595,44 +595,6 @@ WHERE mc.categoryId = @categoryId
       }
 
       return musics;
-    } catch (e) {
-      if (e is CustomHttpException) {
-        rethrow;
-      }
-      throw CustomHttpException(
-        ErrorMessageSQL.SQL_QUERY_ERROR,
-        HttpStatus.internalServerError,
-      );
-    }
-  }
-
-  Future<List<Category>> showCategoryPaging(
-      {int offset = 0, int limit = 5}) async {
-    try {
-      final categoryResult = await _db.executor.execute(
-        Sql.named('''
-  SELECT id, name
-  FROM category
-    ORDER BY RANDOM()
-          LIMIT @limit
-          OFFSET @offset
-  '''),
-        parameters: {
-          'limit': limit,
-          'offset': offset,
-        },
-      );
-      if (categoryResult.isEmpty) {
-        return [];
-      }
-      final categories = categoryResult.map((row) {
-        return Category(
-          id: row[0] as int,
-          name: row[1] as String,
-        );
-      }).toList();
-
-      return categories;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
