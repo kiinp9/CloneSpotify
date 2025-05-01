@@ -1,4 +1,3 @@
-// File: routes/api/categories/[id]/index.dart
 import 'dart:io';
 
 import 'package:dart_frog/dart_frog.dart';
