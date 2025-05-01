@@ -4,7 +4,8 @@ import 'package:postgres/postgres.dart';
 
 import '../constant/config.message.dart';
 import '../exception/config.exception.dart';
-import '../libs/cloudinary/cloudinary.service.dart';
+
+import '../libs/cloudinary/service/upload-album.service.dart';
 import '../model/album.dart';
 import '../model/author.dart';
 import '../model/category.dart';
@@ -25,9 +26,9 @@ abstract class IAlbumRepo {
 }
 
 class AlbumRepository implements IAlbumRepo {
-  AlbumRepository(this._db) : _cloudinaryService = CloudinaryService();
+  AlbumRepository(this._db) : _uploadAlbumService = UploadAlbumService();
   final Database _db;
-  final CloudinaryService _cloudinaryService;
+  final UploadAlbumService _uploadAlbumService;
 
   @override
   Future<int?> uploadAlbum(
@@ -38,11 +39,8 @@ class AlbumRepository implements IAlbumRepo {
       Author author,
       List<Category> categories) async {
     try {
-      print('Đang tải thư mục album lên Cloudinary...');
-      final uploadedAlbumData = await _cloudinaryService
-          .uploadAlbumFromRootFolder(albumFolderPath, avatarPath);
-
-      print('Dữ liệu album đã tải lên: $uploadedAlbumData');
+      final uploadedAlbumData = await _uploadAlbumService.uploadAlbumFromFolder(
+          albumFolderPath, avatarPath);
 
       if (uploadedAlbumData.isEmpty) {
         throw const CustomHttpException(
@@ -51,7 +49,6 @@ class AlbumRepository implements IAlbumRepo {
 
       final now = DateTime.now().toIso8601String();
 
-      print('Đang chèn album vào cơ sở dữ liệu...');
       final albumResult = await _db.executor.execute(
         Sql.named('''
   INSERT INTO album (albumTitle, description, linkUrlImageAlbum, createdAt, updatedAt)
@@ -72,9 +69,7 @@ class AlbumRepository implements IAlbumRepo {
       }
 
       final albumId = albumResult.first[0] as int;
-      print('ID album: $albumId');
 
-      print('Đang kiểm tra tác giả hiện có...');
       final existingAuthorResult = await _db.executor.execute(
         Sql.named('SELECT id FROM author WHERE name = @name'),
         parameters: {'name': author.name},
@@ -84,7 +79,7 @@ class AlbumRepository implements IAlbumRepo {
       if (existingAuthorResult.isNotEmpty &&
           existingAuthorResult.first.isNotEmpty) {
         authorId = existingAuthorResult.first[0] as int;
-        print('Tác giả đã tồn tại, cập nhật thông tin tác giả...');
+
         await _db.executor.execute(
           Sql.named('''
               UPDATE author 
@@ -101,7 +96,6 @@ class AlbumRepository implements IAlbumRepo {
           },
         );
       } else {
-        print('Tác giả mới, chèn vào cơ sở dữ liệu...');
         final authorResult = await _db.executor.execute(
           Sql.named('''
               INSERT INTO author (name, description, avatarUrl, createdAt, updatedAt)
@@ -119,7 +113,6 @@ class AlbumRepository implements IAlbumRepo {
         authorId = authorResult.first[0] as int;
       }
 
-      print('Đang kiểm tra quan hệ album-tác giả hiện có...');
       final existingAlbumAuthorResult = await _db.executor.execute(
         Sql.named(
             'SELECT 1 FROM album_author WHERE albumId = @albumId AND authorId = @authorId'),
@@ -130,7 +123,6 @@ class AlbumRepository implements IAlbumRepo {
       );
 
       if (existingAlbumAuthorResult.isEmpty) {
-        print('Chèn quan hệ album-tác giả...');
         await _db.executor.execute(
           Sql.named('''
               INSERT INTO album_author (albumId, authorId)
@@ -143,7 +135,6 @@ class AlbumRepository implements IAlbumRepo {
         );
       }
 
-      print('Đang xử lý các thể loại...');
       if (categories.isNotEmpty) {
         for (var category in categories) {
           final existingCategoryResult = await _db.executor.execute(
@@ -155,7 +146,7 @@ class AlbumRepository implements IAlbumRepo {
           if (existingCategoryResult.isNotEmpty &&
               existingCategoryResult.first.isNotEmpty) {
             categoryId = existingCategoryResult.first[0] as int;
-            print('Thể loại đã tồn tại, cập nhật thông tin thể loại...');
+
             await _db.executor.execute(
               Sql.named('''
                   UPDATE category 
@@ -170,7 +161,6 @@ class AlbumRepository implements IAlbumRepo {
               },
             );
           } else {
-            print('Thể loại mới, chèn vào cơ sở dữ liệu...');
             final categoryResult = await _db.executor.execute(
               Sql.named('''
                   INSERT INTO category (name, description, createdAt, updatedAt)
@@ -187,7 +177,6 @@ class AlbumRepository implements IAlbumRepo {
             categoryId = categoryResult.first[0] as int;
           }
 
-          print('Chèn quan hệ album-thể loại...');
           final existingAlbumCategoryResult = await _db.executor.execute(
             Sql.named(
                 'SELECT 1 FROM album_category WHERE albumId = @albumId AND categoryId = @categoryId'),
@@ -212,15 +201,12 @@ class AlbumRepository implements IAlbumRepo {
         }
       }
 
-      // Xử lý và chèn từng bài hát
-      print('Đang xử lý các bài hát...');
       if (music.isNotEmpty) {
         for (var music in music) {
           final songName = music.title?.split('.').first ?? 'unknown_song';
           final musicFilePath =
               '${albumFolderPath.replaceAll("\\", "/")}/$songName/$songName.mp3';
 
-          print('Đang lấy thời gian phát sóng cho bài hát: $songName');
           final int? broadcastTime =
               await FFmpegHelper.getAudioDuration(musicFilePath);
 
@@ -257,7 +243,6 @@ class AlbumRepository implements IAlbumRepo {
                 HttpStatus.internalServerError);
           }
 
-          print('Đang chèn bài hát vào cơ sở dữ liệu...');
           final musicResult = await _db.executor.execute(
             Sql.named('''
               INSERT INTO music (title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl, albumId)
@@ -283,7 +268,6 @@ class AlbumRepository implements IAlbumRepo {
           }
 
           final musicId = musicResult.first[0] as int;
-          print('Music inserted with ID: $musicId');
 
           await _db.executor.execute(
             Sql.named('''
@@ -326,7 +310,7 @@ class AlbumRepository implements IAlbumRepo {
       if (e is CustomHttpException) {
         rethrow;
       }
-      print('Error occurred: $e');
+
       throw CustomHttpException(e.toString(), HttpStatus.internalServerError);
     }
   }

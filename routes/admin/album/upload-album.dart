@@ -1,46 +1,55 @@
 import 'dart:io';
-import 'package:dart_frog/dart_frog.dart';
-import '../../constant/config.message.dart';
-import '../../exception/config.exception.dart';
-import '../../model/response.dart';
-import '../../controllers/music_controller.dart';
 
-import '../../model/music.dart';
-import '../../model/author.dart';
-import '../../model/category.dart';
-import '../../model/users.dart';
+import 'package:dart_frog/dart_frog.dart';
+
+import '../../../constant/config.message.dart';
+import '../../../controllers/album_controller.dart';
+import '../../../exception/config.exception.dart';
+import '../../../model/album.dart';
+import '../../../model/author.dart';
+import '../../../model/category.dart';
+import '../../../model/music.dart';
+import '../../../model/response.dart';
+import '../../../model/users.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method.value != 'POST') {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
-
-  final musicController = context.read<MusicController>();
+  final albumController = context.read<AlbumController>();
   final user = context.read<User?>();
   if (user == null || user.role?.name != 'admin') {
     return AppResponse().error(HttpStatus.forbidden, ErrorMessage.FORBIDDEN);
   }
   final body = await context.request.json();
+  final albumFolderPath = body['albumFolderPath']?.toString();
+  final avatarPath = body['author']['avatarUrl']?.toString();
 
-  final musicFilePath = body['musicFilePath']?.toString();
-  final imageFilePath = body['imageFilePath']?.toString();
-
-  if (musicFilePath == null || imageFilePath == null) {
+  if (avatarPath == null) {
     return AppResponse()
-        .error(HttpStatus.badRequest, ErrorMessage.INVALID_MUSIC_OR_IMAGE_FILE);
+        .error(HttpStatus.badRequest, ErrorMessage.INVALID_AUTHOR_IMAGE_FOLDER);
   }
-
+  if (albumFolderPath == null) {
+    return AppResponse()
+        .error(HttpStatus.badRequest, ErrorMessage.INVALID_ALBUM_FOLDER);
+  }
   try {
-    final music = Music(
-      title: body['title'].toString(),
+    final album = Album(
+      albumTitle: body['albumTitle'].toString(),
       description: body['description'].toString(),
     );
+    final music = (body['music'] as List)
+        .map((m) => Music(
+              title: m['title'].toString(),
+              description: m['description'].toString(),
+            ))
+        .toList();
 
     final author = Author(
       name: body['author']['name'].toString(),
       description: body['author']['description'].toString(),
-      avatarUrl: body['author']['avatarUrl']?.toString(),
+      avatarUrl: avatarPath,
     );
 
     final categories = (body['categories'] as List)
@@ -50,13 +59,8 @@ Future<Response> onRequest(RequestContext context) async {
             ))
         .toList();
 
-    await musicController.uploadMusic(
-      music,
-      musicFilePath,
-      imageFilePath,
-      author,
-      categories,
-    );
+    await albumController.uploadAlbum(
+        album, albumFolderPath, avatarPath, music, author, categories);
 
     return AppResponse().success(HttpStatus.ok);
   } catch (e) {

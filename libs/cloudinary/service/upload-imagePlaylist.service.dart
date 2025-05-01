@@ -1,0 +1,56 @@
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+import '../../../constant/config.message.dart';
+import '../../../exception/config.exception.dart';
+
+abstract class IUploadImagePlaylistService {
+  Future<List<String?>> uploadImagePlaylist(List<String> imagePaths);
+
+  Future<String?> uploadFile(String filePath, String folder);
+}
+
+class UploadImagePlaylistService extends IUploadImagePlaylistService {
+  final String cloudName = "di6hah0gf";
+  final String apiKey = "374432928571719";
+  final String uploadPreset = "spotifyclone";
+
+  Future<List<String?>> uploadImagePlaylist(List<String> imagePaths) async {
+    final result = <String?>[];
+
+    for (final path in imagePaths) {
+      final url = await uploadFile(path, "imagePlaylist");
+      result.add(url);
+    }
+
+    return result;
+  }
+
+  Future<String?> uploadFile(String filePath, String folder) async {
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      throw const CustomHttpException(
+          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest);
+    }
+
+    final url = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/upload");
+
+    final request = http.MultipartRequest("POST", url)
+      ..fields["upload_preset"] = uploadPreset
+      ..fields["folder"] = folder
+      ..fields["api_key"] = apiKey
+      ..files.add(await http.MultipartFile.fromPath("file", file.path));
+
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    final data = jsonDecode(responseBody);
+
+    if (response.statusCode == 200) {
+      return data["secure_url"] as String?;
+    } else {
+      throw const CustomHttpException(
+          ErrorMessage.UPLOAD_FAIL, HttpStatus.badRequest);
+    }
+  }
+}

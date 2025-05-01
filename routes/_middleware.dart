@@ -3,12 +3,15 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 import '../controllers/album_controller.dart';
 import '../controllers/author_controller.dart';
+import '../controllers/category_controller.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/user_controller.dart';
 import '../database/iredis.dart';
 import '../database/postgres.dart';
 import '../database/redis.dart';
-import '../libs/cloudinary/cloudinary.service.dart';
+
+import '../libs/cloudinary/service/upload-album.service.dart';
+import '../libs/cloudinary/service/upload-music.service.dart';
 import '../log/log.dart';
 
 import '../main.dart';
@@ -16,6 +19,7 @@ import '../model/roles.dart';
 import '../model/users.dart';
 import '../repository/album_repository.dart';
 import '../repository/author_repository.dart';
+import '../repository/category_repository.dart';
 import '../repository/music_repository.dart';
 import '../repository/user_repository.dart';
 import '../security/jwt.security.dart';
@@ -25,14 +29,17 @@ Handler middleware(Handler handler) {
   final userRepository = UserRepository(database);
   final musicRepository = MusicRepository(database);
   final authorRepository = AuthorRepository(database);
+  final categoryRepository = CategoryRepository(database);
   final albumRepository = AlbumRepository(database);
   final redisService = RedisService();
   final jwtService = JwtService(redisService);
-  final cloudinaryService = CloudinaryService();
+  final uploadMusicService = UploadMusicService();
+  final uploadAlbumService = UploadAlbumService();
   final userController = UserController(userRepository, jwtService);
   final musicController = MusicController(musicRepository, redisService);
   final authorController = AuthorController(authorRepository);
   final albumController = AlbumController(albumRepository);
+  final categoryController = CategoryController(categoryRepository);
   final jwtMiddleware = createJwtMiddleware(jwtService, redisService);
 
   return handler
@@ -43,8 +50,10 @@ Handler middleware(Handler handler) {
       .use(provider<UserController>((context) => userController))
       .use(provider<MusicController>((context) => musicController))
       .use(provider<AuthorController>((context) => authorController))
+      .use(provider<CategoryController>((context) => categoryController))
       .use(provider<AlbumController>((context) => albumController))
-      .use(provider<CloudinaryService>((context) => cloudinaryService))
+      .use(provider<UploadMusicService>((context) => uploadMusicService))
+      .use(provider<UploadAlbumService>((context) => uploadAlbumService))
       .use(loggingMiddleware())
       .use(jwtMiddleware);
 }
@@ -55,7 +64,8 @@ Middleware injectionController(JwtService jwtService) {
         .use(provider<Database>((context) => Database()))
         .use(provider<IRedisService>((context) => RedisService()))
         .use(provider<JwtService>((context) => jwtService))
-        .use(provider<CloudinaryService>((context) => CloudinaryService()))
+        .use(provider<UploadMusicService>((context) => UploadMusicService()))
+        .use(provider<UploadAlbumService>((context) => UploadAlbumService()))
         .use(provider<UserRepository>((context) {
       final db = context.read<Database>();
       return UserRepository(db);
@@ -71,6 +81,9 @@ Middleware injectionController(JwtService jwtService) {
     })).use(provider<AuthorController>((context) {
       final authorRepository = context.read<AuthorRepository>();
       return AuthorController(authorRepository);
+    })).use(provider<CategoryController>((context) {
+      final categoryRepository = context.read<CategoryRepository>();
+      return CategoryController(categoryRepository);
     })).use(provider<AlbumController>((context) {
       final albumRepository = context.read<AlbumRepository>();
       return AlbumController(albumRepository);

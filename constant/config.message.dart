@@ -67,4 +67,14 @@ class ErrorMessage {
   static const String MUSIC_NOT_FOUND = 'Không tìm thấy bài hát theo yêu cầu';
   static const String AUTHOR_NOT_FOUND = 'Không tìm thầy nhạc sĩ theo yêu cầu';
   static const String ALBUM_NOT_FOUND = 'Không tìm thấy album theo yêu cầu';
+  static const String EMPTY_CATEGORY_IMAGE_PATH =
+      'Đường dẫn hình ảnh thể loại không được để trống!';
+  static const String INVALID_CATEGORY_ID = 'categoryId không tồn tại';
+  static const String CATEGORY_NOT_FOUND = 'Không tìm thấy thể loại yêu cầu';
+  static const String EMPTY_FIELD =
+      'Không có trường nào được cung cấp để cập nhật';
+  static const String CANNOT_DELETE_CATEGORY_CASE_2 =
+      'Không thể xóa vì category đang được sử dụng trong bảng album_category';
+  static const String CANNOT_DELETE_CATEGORY_CASE_1 =
+      'Không thể xóa vì category đang được sử dụng trong bảng music_category.';
 }

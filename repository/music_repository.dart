@@ -5,10 +5,12 @@ import 'package:postgres/postgres.dart';
 import '../constant/config.message.dart';
 import '../database/postgres.dart';
 import '../exception/config.exception.dart';
+
+import '../libs/cloudinary/service/upload-music.service.dart';
 import '../model/author.dart';
 import '../model/category.dart';
 import '../model/music.dart';
-import '../libs/cloudinary/cloudinary.service.dart';
+
 import '../ultis/ffmpeg_helper.dart';
 
 abstract class IMusicRepo {
@@ -23,9 +25,9 @@ abstract class IMusicRepo {
 }
 
 class MusicRepository implements IMusicRepo {
-  MusicRepository(this._db) : _cloudinaryService = CloudinaryService();
+  MusicRepository(this._db) : _uploadMusicService = UploadMusicService();
   final Database _db;
-  final CloudinaryService _cloudinaryService;
+  final UploadMusicService _uploadMusicService;
 
   @override
   Future<int?> uploadMusic(Music music, String musicFilePath,
@@ -39,10 +41,10 @@ class MusicRepository implements IMusicRepo {
             HttpStatus.internalServerError);
       }
 
-      String? musicUrl = await _cloudinaryService.uploadFile(musicFilePath);
-      String? imageUrl = await _cloudinaryService.uploadFile(imageFilePath);
+      String? musicUrl = await _uploadMusicService.uploadFile(musicFilePath);
+      String? imageUrl = await _uploadMusicService.uploadFile(imageFilePath);
       String? avatarUrl = author.avatarUrl != null
-          ? await _cloudinaryService.uploadFile(author.avatarUrl!)
+          ? await _uploadMusicService.uploadFile(author.avatarUrl!)
           : null;
 
       final now = DateTime.now().toIso8601String();
