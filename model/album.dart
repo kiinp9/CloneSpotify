@@ -13,6 +13,8 @@ class Album {
     this.musics = const [],
     this.authors = const [],
     this.categories = const [],
+    this.nation,
+    this.listenCountAlbum = 0,
   });
 
   int? id;
@@ -24,6 +26,8 @@ class Album {
   List<Music> musics;
   List<Author> authors;
   List<Category> categories;
+  String? nation;
+  int listenCountAlbum;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -35,12 +39,14 @@ class Album {
         'musics': musics.map((m) => m.toJson()).toList(),
         'authors': authors.map((a) => a.toJson()).toList(),
         'categories': categories.map((c) => c.toJson()).toList(),
+        'nation': nation,
+        'listenCountAlbum': listenCountAlbum,
       };
 
   @override
   String toString() {
     return '''
-{id = $id, albumTitle = $albumTitle,description = $description,linkUrlImageAlbum = $linkUrlImageAlbum,createdAt = $createdAt, updatedAt= $updatedAt,musics : ${musics.map((m) => m.title).toList()},authors: ${authors.map((a) => a.name).toList()}, categories: ${categories.map((c) => c.name).toList()},
+{id = $id, albumTitle = $albumTitle,description = $description,linkUrlImageAlbum = $linkUrlImageAlbum,createdAt = $createdAt, updatedAt= $updatedAt,musics : ${musics.map((m) => m.title).toList()},authors: ${authors.map((a) => a.name).toList()}, categories: ${categories.map((c) => c.name).toList()},nation = $nation,listenCountAlbum = $listenCountAlbum
 ''';
   }
 }

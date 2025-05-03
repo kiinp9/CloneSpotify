@@ -44,6 +44,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'updatedAt': result.updatedAt?.toIso8601String(),
         'imageUrl': result.imageUrl,
         'listenCount': result.listenCount,
+        'nation': result.nation
       },
       'authors': result.authors.map((author) {
         return {

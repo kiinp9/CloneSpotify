@@ -22,6 +22,8 @@ abstract class IMusicRepo {
   Future<List<Music>> showMusicByCategory(int categoryId);
 
   Future<Music?> nextMusic(int currentMusicId);
+  Future<Music> updateMusic(int musicId, Map<String, dynamic> updateField);
+  Future<Music> deleteMusic(int musicId);
 }
 
 class MusicRepository implements IMusicRepo {
@@ -51,8 +53,8 @@ class MusicRepository implements IMusicRepo {
 
       final musicResult = await _db.executor.execute(
         Sql.named('''
-          INSERT INTO music (title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl)
-          VALUES (@title, @description, @broadcastTime, @linkUrlMusic, @createdAt, @updatedAt, @imageUrl)
+          INSERT INTO music (title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount,nation)
+          VALUES (@title, @description, @broadcastTime, @linkUrlMusic, @createdAt, @updatedAt, @imageUrl,@listenCount,@nation)
           RETURNING id
         '''),
         parameters: {
@@ -63,6 +65,8 @@ class MusicRepository implements IMusicRepo {
           'createdAt': now,
           'updatedAt': now,
           'imageUrl': imageUrl,
+          'listenCount': music.listenCount,
+          'nation': music.nation,
         },
       );
 
@@ -214,7 +218,7 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount
+        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount,nation
         FROM music
         WHERE id = @id
       '''),
@@ -239,6 +243,7 @@ class MusicRepository implements IMusicRepo {
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
         listenCount: musicRow[8] as int,
+        nation: musicRow[9] as String,
       );
 
       final authorResult = await _db.executor.execute(
@@ -299,7 +304,7 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount
+      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount,nation
       FROM music 
       WHERE LOWER(title) = LOWER(@title)
     '''),
@@ -323,6 +328,7 @@ class MusicRepository implements IMusicRepo {
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
         listenCount: musicRow[8] as int,
+        nation: musicRow[9] as String,
       );
 
       final authorResult = await _db.executor.execute(
@@ -460,7 +466,7 @@ class MusicRepository implements IMusicRepo {
 
       final nextMusicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl,m.listenCount
+        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl,m.listenCount,m.nation
         FROM music m
         JOIN music_author ma ON m.id = ma.musicId
         WHERE ma.authorId = @authorId
@@ -493,6 +499,7 @@ class MusicRepository implements IMusicRepo {
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
         listenCount: musicRow[8] as int,
+        nation: musicRow[9] as String,
       );
       if (music.id != null) {
         await incrementListenCount(music.id!);
@@ -616,13 +623,159 @@ WHERE mc.categoryId = @categoryId
         SET listenCount = listenCount + 1
         WHERE id = @id
       '''),
-        parameters: {
-          'id': musicId,
-        },
+        parameters: {'id': musicId},
+      );
+
+      final result = await _db.executor.execute(
+        Sql.named('SELECT albumId FROM music WHERE id = @musicId'),
+        parameters: {'musicId': musicId},
+      );
+
+      if (result.isEmpty || result.first.isEmpty) {
+        return;
+      }
+
+      final albumId = result.first[0] as int?;
+
+      if (albumId != null) {
+        await _db.executor.execute(
+          Sql.named('''
+          UPDATE album
+          SET listenCountAlbum = listenCountAlbum + 1
+          WHERE id = @albumId
+        '''),
+          parameters: {'albumId': albumId},
+        );
+      }
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<Music> updateMusic(
+      int musicId, Map<String, dynamic> updateFields) async {
+    try {
+      final setClauseParts = <String>[];
+      final parameters = <String, dynamic>{
+        'id': musicId,
+        'updatedAt': DateTime.now(),
+      };
+
+      if (updateFields.containsKey('title')) {
+        setClauseParts.add('title = @title');
+        parameters['title'] = updateFields['title'];
+      }
+      if (updateFields.containsKey('description')) {
+        setClauseParts.add('description = @description');
+        parameters['description'] = updateFields['description'];
+      }
+      if (updateFields.containsKey('nation')) {
+        setClauseParts.add('nation = @nation');
+        parameters['nation'] = updateFields['nation'];
+      }
+      setClauseParts.add('updatedAt = @updatedAt');
+      final setClause = setClauseParts.join(', ');
+      final query = '''
+UPDATE music
+SET $setClause
+WHERE id = @id
+RETURNING id,title,description,broadcastTime,linkUrlMusic,createdAt,updatedAt,imageUrl,albumId,listenCount,nation
+''';
+      final result = await _db.executor.execute(
+        Sql.named(query),
+        parameters: parameters,
+      );
+
+      if (result.isEmpty || result.first.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessageSQL.SQL_QUERY_ERROR,
+          HttpStatus.internalServerError,
+        );
+      }
+
+      final row = result.first;
+      return Music(
+        id: row[0] as int,
+        title: row[1] as String,
+        description: row[2] as String,
+        broadcastTime: row[3] as int,
+        linkUrlMusic: row[4] as String,
+        createdAt: row[5] as DateTime?,
+        updatedAt: row[6] as DateTime?,
+        imageUrl: row[7] as String?,
+        albumId: row[8] as int,
+        listenCount: row[9] as int,
+        nation: row[10] as String,
       );
     } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
       throw CustomHttpException(
-        "Lỗi khi cập nhật số lần nghe: $e",
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<Music> deleteMusic(int musicId) async {
+    try {
+      final result = await _db.executor.execute(
+        Sql.named('SELECT * FROM music WHERE id = @id'),
+        parameters: {'id': musicId},
+      );
+
+      if (result.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.MUSIC_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
+
+      final row = result.first;
+
+      final music = Music(
+        id: row[0] as int,
+        title: row[1] as String,
+        description: row[2] as String,
+        broadcastTime: row[3] as int,
+        linkUrlMusic: row[4] as String,
+        createdAt: row[5] as DateTime?,
+        updatedAt: row[6] as DateTime?,
+        imageUrl: row[7] as String?,
+        albumId: row[8] as int,
+        listenCount: row[9] as int,
+        nation: row[10] as String? ?? '',
+      );
+
+      await _db.executor.execute(
+        Sql.named('DELETE FROM music_author WHERE musicId = @id'),
+        parameters: {'id': musicId},
+      );
+
+      await _db.executor.execute(
+        Sql.named('DELETE FROM music_category WHERE musicId = @id'),
+        parameters: {'id': musicId},
+      );
+
+      await _db.executor.execute(
+        Sql.named('DELETE FROM music WHERE id = @id'),
+        parameters: {'id': musicId},
+      );
+
+      return music;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }

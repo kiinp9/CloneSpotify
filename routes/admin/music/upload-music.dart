@@ -35,6 +35,7 @@ Future<Response> onRequest(RequestContext context) async {
     final music = Music(
       title: body['title'].toString(),
       description: body['description'].toString(),
+      nation: body['nation'].toString(),
     );
 
     final author = Author(

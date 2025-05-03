@@ -38,11 +38,13 @@ Future<Response> onRequest(RequestContext context) async {
     final album = Album(
       albumTitle: body['albumTitle'].toString(),
       description: body['description'].toString(),
+      nation: body['nation'].toString(),
     );
     final music = (body['music'] as List)
         .map((m) => Music(
               title: m['title'].toString(),
               description: m['description'].toString(),
+              nation: album.nation,
             ))
         .toList();
 

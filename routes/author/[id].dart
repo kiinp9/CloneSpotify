@@ -34,6 +34,8 @@ Future<Response> onRequest(RequestContext context, String id) async {
           'linkUrlImageAlbum': album.linkUrlImageAlbum,
           'createdAt': album.createdAt?.toIso8601String(),
           'updatedAt': album.updatedAt?.toIso8601String(),
+          'listenCountAlbum': album.listenCountAlbum,
+          'nation': album.nation,
         };
       }).toList(),
       'music': result?.musics?.map((music) {
@@ -46,6 +48,8 @@ Future<Response> onRequest(RequestContext context, String id) async {
           'createdAt': music.createdAt?.toIso8601String(),
           'updatedAt': music.updatedAt?.toIso8601String(),
           'imageUrl': music.imageUrl,
+          'listenCount': music.listenCount,
+          'nation': music.nation,
         };
       }).toList(),
     });

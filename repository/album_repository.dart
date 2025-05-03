@@ -51,8 +51,8 @@ class AlbumRepository implements IAlbumRepo {
 
       final albumResult = await _db.executor.execute(
         Sql.named('''
-  INSERT INTO album (albumTitle, description, linkUrlImageAlbum, createdAt, updatedAt)
-  VALUES (@albumTitle, @description, @linkUrlImageAlbum, @createdAt, @updatedAt)
+  INSERT INTO album (albumTitle, description, linkUrlImageAlbum, createdAt, updatedAt,nation,listenCountAlbum)
+  VALUES (@albumTitle, @description, @linkUrlImageAlbum, @createdAt, @updatedAt,@nation,listenCountAlbum)
   RETURNING id
   '''),
         parameters: {
@@ -61,6 +61,8 @@ class AlbumRepository implements IAlbumRepo {
           'linkUrlImageAlbum': uploadedAlbumData['albumImage'],
           'createdAt': now,
           'updatedAt': now,
+          'nation': album.nation,
+          'listenCountAlbum': album.listenCountAlbum
         },
       );
       if (albumResult.isEmpty || albumResult.first.isEmpty) {
@@ -245,8 +247,8 @@ class AlbumRepository implements IAlbumRepo {
 
           final musicResult = await _db.executor.execute(
             Sql.named('''
-              INSERT INTO music (title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl, albumId)
-              VALUES (@title, @description, @broadcastTime, @linkUrlMusic, @createdAt, @updatedAt, @imageUrl, @albumId)
+              INSERT INTO music (title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl, albumId,listenCount,nation)
+              VALUES (@title, @description, @broadcastTime, @linkUrlMusic, @createdAt, @updatedAt, @imageUrl, @albumId,@listenCount,@nation)
               RETURNING id
             '''),
             parameters: {
@@ -258,6 +260,8 @@ class AlbumRepository implements IAlbumRepo {
               'updatedAt': now,
               'imageUrl': imageUrl,
               'albumId': albumId,
+              'nation': album.nation,
+              'listenCount': music.listenCount,
             },
           );
 
@@ -320,7 +324,7 @@ class AlbumRepository implements IAlbumRepo {
     try {
       final albumResult = await _db.executor.execute(
         Sql.named('''
-SELECT id,albumTitle,description,linkUrlImageAlbum,createdAt,updatedAt
+SELECT id,albumTitle,description,linkUrlImageAlbum,createdAt,updatedAt,listenCountAlbum,nation
 FROM album
 WHERE id = @id
 '''),
@@ -340,6 +344,8 @@ WHERE id = @id
         linkUrlImageAlbum: albumRow[3] as String,
         createdAt: _parseDate(albumRow[4]),
         updatedAt: _parseDate(albumRow[5]),
+        listenCountAlbum: albumRow[6] as int,
+        nation: albumRow[7] as String,
       );
 
       final authorResult = await _db.executor.execute(
@@ -385,7 +391,7 @@ WHERE alc.albumId = @id
 
       final musicResult = await _db.executor.execute(
         Sql.named('''
-SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl, m.albumId
+SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl, m.albumId,m.listenCount,m.nation
 FROM music m
 WHERE m.albumId = @id
 '''),
@@ -402,6 +408,8 @@ WHERE m.albumId = @id
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
           imageUrl: row[7] as String,
+          listenCount: row[8] as int,
+          nation: row[9] as String,
         );
       }).toList();
 
@@ -422,7 +430,7 @@ WHERE m.albumId = @id
     try {
       final albumResult = await _db.executor.execute(
         Sql.named('''
-SELECT id,albumTitle,description,linkUrlImageAlbum,createdAt,updatedAt
+SELECT id,albumTitle,description,linkUrlImageAlbum,createdAt,updatedAt,listenCountAlbum,nation
 FROM album
 WHERE LOWER(albumTitle) = LOWER(@albumTitle)
 '''),
@@ -441,6 +449,8 @@ WHERE LOWER(albumTitle) = LOWER(@albumTitle)
         linkUrlImageAlbum: albumRow[3] as String,
         createdAt: _parseDate(albumRow[4]),
         updatedAt: _parseDate(albumRow[5]),
+        listenCountAlbum: albumRow[6] as int,
+        nation: albumRow[7] as String,
       );
       final authorResult = await _db.executor.execute(
         Sql.named('''
@@ -485,7 +495,7 @@ WHERE alc.albumId = @id
 
       final musicResult = await _db.executor.execute(
         Sql.named('''
-SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl, m.albumId
+SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl, m.albumId,m.listenCount,m.nation
 FROM music m
 WHERE m.albumId = @id
 '''),
@@ -502,6 +512,8 @@ WHERE m.albumId = @id
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
           imageUrl: row[7] as String,
+          listenCount: row[8] as int,
+          nation: row[9] as String,
         );
       }).toList();
 

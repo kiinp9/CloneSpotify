@@ -137,4 +137,15 @@ class MusicController {
 
     return music;
   }
+
+  Future<Music> updateMusic(
+      int musicId, Map<String, dynamic> updateFields) async {
+    final music = await _musicRepository.updateMusic(musicId, updateFields);
+    return music;
+  }
+
+  Future<Music> deleteMusic(int musicId) async {
+    final music = await _musicRepository.deleteMusic(musicId);
+    return music;
+  }
 }

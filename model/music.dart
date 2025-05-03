@@ -15,6 +15,7 @@ class Music {
     this.imageUrl,
     this.albumId,
     this.listenCount = 0,
+    this.nation,
   });
 
   int? id;
@@ -29,6 +30,7 @@ class Music {
   String? imageUrl;
   int? albumId;
   int listenCount;
+  String? nation;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -43,6 +45,7 @@ class Music {
         'imageUrl': imageUrl,
         'albumId': albumId,
         'listenCount': listenCount,
+        'nation': nation,
       };
 
   @override
@@ -51,7 +54,7 @@ class Music {
 {id= $id, title= $title, description= $description, broadcastTime= $broadcastTime, linkUrlMusic= $linkUrlMusic, 
 authors: ${authors.map((a) => a.name).toList()},
 categories: ${categories.map((c) => c.name).toList()},
-createdAt = $createdAt, updatedAt= $updatedAt, imageUrl: $imageUrl, albumId: $albumId, listenCount: $listenCount}
+createdAt = $createdAt, updatedAt= $updatedAt, imageUrl: $imageUrl, albumId: $albumId, listenCount: $listenCount, nation: $nation}
 ''';
   }
 }
