@@ -6,7 +6,7 @@ import '../../../constant/config.message.dart';
 import '../../../exception/config.exception.dart';
 
 abstract class IUploadImagePlaylistService {
-  Future<List<String?>> uploadImagePlaylist(List<String> imagePaths);
+  Future<String?> uploadImagePlaylist(String imagePath);
 
   Future<String?> uploadFile(String filePath, String folder);
 }
@@ -16,15 +16,9 @@ class UploadImagePlaylistService extends IUploadImagePlaylistService {
   final String apiKey = "374432928571719";
   final String uploadPreset = "spotifyclone";
 
-  Future<List<String?>> uploadImagePlaylist(List<String> imagePaths) async {
-    final result = <String?>[];
-
-    for (final path in imagePaths) {
-      final url = await uploadFile(path, "imagePlaylist");
-      result.add(url);
-    }
-
-    return result;
+  Future<String?> uploadImagePlaylist(String imagePath) async {
+    final url = await uploadFile(imagePath, "imagePlaylist");
+    return url;
   }
 
   Future<String?> uploadFile(String filePath, String folder) async {

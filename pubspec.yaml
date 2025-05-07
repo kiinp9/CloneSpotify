@@ -19,6 +19,7 @@ dependencies:
   image: ^4.5.4
   jwt_decoder: ^2.0.1
   mailer: ^6.4.1
+  path_provider: ^2.1.5
   postgres: ^3.5.4
   redis: ^4.0.0
   strings: ^3.2.0

@@ -23,6 +23,8 @@ abstract class IAlbumRepo {
       List<Category> categories);
   Future<Album?> findAlbumById(int id);
   Future<Album?> findAlbumByAlbumTitle(String albumTitle);
+  Future<Album> updateAlbum(int albumId, Map<String, dynamic> updateFields);
+  Future<Album> deleteAlbumById(int albumId);
 }
 
 class AlbumRepository implements IAlbumRepo {
@@ -52,7 +54,7 @@ class AlbumRepository implements IAlbumRepo {
       final albumResult = await _db.executor.execute(
         Sql.named('''
   INSERT INTO album (albumTitle, description, linkUrlImageAlbum, createdAt, updatedAt,nation,listenCountAlbum)
-  VALUES (@albumTitle, @description, @linkUrlImageAlbum, @createdAt, @updatedAt,@nation,listenCountAlbum)
+  VALUES (@albumTitle, @description, @linkUrlImageAlbum, @createdAt, @updatedAt,@nation,@listenCountAlbum)
   RETURNING id
   '''),
         parameters: {
@@ -165,8 +167,8 @@ class AlbumRepository implements IAlbumRepo {
           } else {
             final categoryResult = await _db.executor.execute(
               Sql.named('''
-                  INSERT INTO category (name, description, createdAt, updatedAt)
-                  VALUES (@name, @description, @createdAt, @updatedAt)
+                  INSERT INTO category (name, description, createdAt, updatedAt,imageUrl)
+                  VALUES (@name, @description, @createdAt, @updatedAt,@imageUrl)
                   RETURNING id
                 '''),
               parameters: {
@@ -174,6 +176,7 @@ class AlbumRepository implements IAlbumRepo {
                 'description': category.description ?? '',
                 'createdAt': now,
                 'updatedAt': now,
+                'imageUrl': category.imageUrl ?? '',
               },
             );
             categoryId = categoryResult.first[0] as int;
@@ -339,13 +342,13 @@ WHERE id = @id
       final albumRow = albumResult.first;
       final album = Album(
         id: albumRow[0] as int,
-        albumTitle: albumRow[1] as String,
-        description: albumRow[2] as String,
-        linkUrlImageAlbum: albumRow[3] as String,
-        createdAt: _parseDate(albumRow[4]),
-        updatedAt: _parseDate(albumRow[5]),
-        listenCountAlbum: albumRow[6] as int,
-        nation: albumRow[7] as String,
+        description: albumRow[1] as String,
+        linkUrlImageAlbum: albumRow[2] as String,
+        createdAt: _parseDate(albumRow[3]),
+        updatedAt: _parseDate(albumRow[4]),
+        albumTitle: albumRow[5] as String,
+        nation: albumRow[6] as String? ?? '',
+        listenCountAlbum: albumRow[7] as int,
       );
 
       final authorResult = await _db.executor.execute(
@@ -444,13 +447,13 @@ WHERE LOWER(albumTitle) = LOWER(@albumTitle)
       final albumRow = albumResult.first;
       final album = Album(
         id: albumRow[0] as int,
-        albumTitle: albumRow[1] as String,
-        description: albumRow[2] as String,
-        linkUrlImageAlbum: albumRow[3] as String,
-        createdAt: _parseDate(albumRow[4]),
-        updatedAt: _parseDate(albumRow[5]),
-        listenCountAlbum: albumRow[6] as int,
-        nation: albumRow[7] as String,
+        description: albumRow[1] as String,
+        linkUrlImageAlbum: albumRow[2] as String,
+        createdAt: _parseDate(albumRow[3]),
+        updatedAt: _parseDate(albumRow[4]),
+        albumTitle: albumRow[5] as String,
+        nation: albumRow[6] as String? ?? '',
+        listenCountAlbum: albumRow[7] as int,
       );
       final authorResult = await _db.executor.execute(
         Sql.named('''
@@ -517,6 +520,131 @@ WHERE m.albumId = @id
         );
       }).toList();
 
+      return album;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<Album> updateAlbum(
+      int albumId, Map<String, dynamic> updateFields) async {
+    try {
+      final setClauseParts = <String>[];
+      final parameters = <String, dynamic>{
+        'id': albumId,
+        'updatedAt': DateTime.now(),
+      };
+      if (updateFields.containsKey('albumTitle')) {
+        setClauseParts.add('albumTitle = @albumTitle');
+        parameters['albumTitle'] = updateFields['albumTitle'];
+      }
+      if (updateFields.containsKey('description')) {
+        setClauseParts.add('description = @description');
+        parameters['description'] = updateFields['description'];
+      }
+      if (updateFields.containsKey('nation')) {
+        setClauseParts.add('nation = @nation');
+        parameters['nation'] = updateFields['nation'];
+      }
+      setClauseParts.add('updatedAt = @updatedAt');
+      final setClause = setClauseParts.join(', ');
+      final query = '''
+UPDATE album
+SET $setClause
+WHERE id = @id
+RETURNING id,albumTitle,description,linkUrlImageAlbum,createdAt,updatedAt,nation,listenCountAlbum
+''';
+      final result =
+          await _db.executor.execute(Sql.named(query), parameters: parameters);
+      if (result.isEmpty || result.first.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessageSQL.SQL_QUERY_ERROR,
+          HttpStatus.internalServerError,
+        );
+      }
+      final albumRow = result.first;
+      return Album(
+        id: albumRow[0] as int,
+        description: albumRow[1] as String,
+        linkUrlImageAlbum: albumRow[2] as String,
+        createdAt: _parseDate(albumRow[3]),
+        updatedAt: _parseDate(albumRow[4]),
+        albumTitle: albumRow[5] as String,
+        nation: albumRow[6] as String? ?? '',
+        listenCountAlbum: albumRow[7] as int,
+      );
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<Album> deleteAlbumById(int albumId) async {
+    try {
+      final result = await _db.executor.execute(
+        Sql.named('''
+SELECT * FROM album WHERE id = @id
+'''),
+        parameters: {'id': albumId},
+      );
+
+      if (result.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.ALBUM_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
+
+      final albumRow = result.first;
+      final album = Album(
+        id: albumRow[0] as int,
+        description: albumRow[1] as String,
+        linkUrlImageAlbum: albumRow[2] as String,
+        createdAt: _parseDate(albumRow[3]),
+        updatedAt: _parseDate(albumRow[4]),
+        albumTitle: albumRow[5] as String,
+        nation: albumRow[6] as String? ?? '',
+        listenCountAlbum: albumRow[7] as int,
+      );
+
+      await _db.executor.execute(
+        Sql.named('''
+DELETE FROM album_author WHERE albumId = @id
+'''),
+        parameters: {'id': albumId},
+      );
+      await _db.executor.execute(
+        Sql.named('''
+DELETE album FROM album_category WHERE albumId = @id
+'''),
+        parameters: {'id': albumId},
+      );
+
+      await _db.executor.execute(
+        Sql.named('''
+DELETE FROM music WHERE albumId = @id
+'''),
+        parameters: {'id': albumId},
+      );
+
+      await _db.executor.execute(
+        Sql.named('''
+
+DELETE FROM album WHERE id = @id
+'''),
+        parameters: {'id': albumId},
+      );
       return album;
     } catch (e) {
       if (e is CustomHttpException) {

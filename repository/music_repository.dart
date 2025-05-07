@@ -218,10 +218,10 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,listenCount,nation
-        FROM music
-        WHERE id = @id
-      '''),
+      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl, listenCount, nation
+      FROM music
+      WHERE id = @id
+    '''),
         parameters: {'id': id},
       );
 
@@ -243,16 +243,16 @@ class MusicRepository implements IMusicRepo {
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
         listenCount: musicRow[8] as int,
-        nation: musicRow[9] as String,
+        nation: musicRow[9] as String? ?? '',
       );
 
       final authorResult = await _db.executor.execute(
         Sql.named('''
-        SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt
-        FROM author a
-        JOIN music_author ma ON a.id = ma.authorId
-        WHERE ma.musicId = @id
-      '''),
+      SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt
+      FROM author a
+      JOIN music_author ma ON a.id = ma.authorId
+      WHERE ma.musicId = @id
+    '''),
         parameters: {'id': id},
       );
 
@@ -269,11 +269,11 @@ class MusicRepository implements IMusicRepo {
 
       final categoryResult = await _db.executor.execute(
         Sql.named('''
-        SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt
-        FROM category c
-        JOIN music_category mc ON c.id = mc.categoryId
-        WHERE mc.musicId = @id
-      '''),
+      SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt, imageUrl
+      FROM category c
+      JOIN music_category mc ON c.id = mc.categoryId
+      WHERE mc.musicId = @id
+    '''),
         parameters: {'id': id},
       );
 
@@ -284,6 +284,7 @@ class MusicRepository implements IMusicRepo {
           description: row[2] as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
+          imageUrl: row[5] as String? ?? '',
         );
       }).toList();
 
@@ -292,6 +293,7 @@ class MusicRepository implements IMusicRepo {
       if (e is CustomHttpException) {
         rethrow;
       }
+
       throw CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,

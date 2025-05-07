@@ -79,4 +79,15 @@ class AlbumController {
     final album = await _albumRepository.findAlbumByAlbumTitle(albumTitle);
     return album;
   }
+
+  Future<Album> updateAlbum(
+      int albumId, Map<String, dynamic> updateFields) async {
+    final album = await _albumRepository.updateAlbum(albumId, updateFields);
+    return album;
+  }
+
+  Future<Album> deleteAlbumById(int albumId) async {
+    final album = await _albumRepository.deleteAlbumById(albumId);
+    return album;
+  }
 }
