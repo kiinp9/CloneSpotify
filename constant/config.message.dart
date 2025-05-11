@@ -77,4 +77,15 @@ class ErrorMessage {
       'Không thể xóa vì category đang được sử dụng trong bảng album_category';
   static const String CANNOT_DELETE_CATEGORY_CASE_1 =
       'Không thể xóa vì category đang được sử dụng trong bảng music_category.';
+  static const String GENERATE_IMAGE_PLAYLIST_FAILED =
+      'Tạo ảnh playlist thất bại';
+  static const String DOWNLOAD_IMAGE_FAILED = 'Tải ảnh thất bại';
+  static const String UNAUTHORIZED = 'Unauthorization';
+  static const String PLAYLIST_NOT_FOUND = 'playlist không tồn tại';
+  static const String MUSIC_ALREADY_EXIST_IN_PLAYLIST =
+      'bài hàt này đã tồn tại trong playlist này rồi';
+  static const String PLAYLIST_IS_EMPTY =
+      'playlist của bạn không tồn tại bài hát nào';
+  static const String NO_PLAYLIST_FOUND =
+      'Người dùng hiện tại chưa có playlist nào';
 }

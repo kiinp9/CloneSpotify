@@ -8,16 +8,5 @@ abstract class IPlaylistImageGenerator {
   ///
   /// [musicList] Danh sách bài hát trong playlist
   /// Trả về URL của ảnh bìa playlist đã tải lên
-  Future<String> generateAndUploadPlaylistImage(List<Music> musicList);
-}
-
-// lib/interfaces/playlist/image_uploader_interface.dart
-
-/// Interface cho service tải lên ảnh playlist
-abstract class IImageUploader {
-  /// Tải lên ảnh playlist vào dịch vụ lưu trữ
-  ///
-  /// [imagePath] Đường dẫn local tới file ảnh
-  /// Trả về URL của ảnh đã tải lên
-  Future<String> uploadPlaylistImage(String imagePath);
+  Future<String> generatePlaylistImage(List<Music> musicList);
 }

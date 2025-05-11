@@ -11,7 +11,7 @@ abstract class IUploadImagePlaylistService {
   Future<String?> uploadFile(String filePath, String folder);
 }
 
-class UploadImagePlaylistService extends IUploadImagePlaylistService {
+class UploadImagePlaylistService implements IUploadImagePlaylistService {
   final String cloudName = "di6hah0gf";
   final String apiKey = "374432928571719";
   final String uploadPreset = "spotifyclone";

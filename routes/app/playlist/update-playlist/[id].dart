@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 
 import '../../../../constant/config.message.dart';
-import '../../../../controllers/music_controller.dart';
+import '../../../../controllers/playlist_controller.dart';
+import '../../../../controllers/user_controller.dart';
 import '../../../../exception/config.exception.dart';
 import '../../../../model/response.dart';
 import '../../../../model/users.dart';
@@ -13,35 +14,39 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
-  final musicController = context.read<MusicController>();
-  final user = context.read<User?>();
-  if (user == null || user.role?.name != 'admin') {
-    return AppResponse().error(HttpStatus.forbidden, ErrorMessage.FORBIDDEN);
+  final jwtUser = context.read<User?>();
+  final playlistController = context.read<PlaylistController>();
+  final userController = context.read<UserController>();
+  if (jwtUser == null) {
+    return AppResponse()
+        .error(HttpStatus.unauthorized, ErrorMessage.UNAUTHORIZED);
   }
-  final musicId = int.tryParse(context.request.uri.pathSegments.last);
-  if (musicId == null) {
+  final playlistId = int.tryParse(context.request.uri.pathSegments.last);
+  if (playlistId == null) {
     return AppResponse()
         .error(HttpStatus.badRequest, ErrorMessage.MUSIC_NOT_FOUND);
   }
-
   try {
+    final user = await userController.findUserById(jwtUser.id!);
+    if (user == null) {
+      return AppResponse()
+          .error(HttpStatus.notFound, ErrorMessage.USER_NOT_FOUND);
+    }
     final body = await context.request.json() as Map<String, dynamic>;
     final Map<String, dynamic> updateFields = {};
 
-    if (body.containsKey('title')) {
-      updateFields['title'] = body['title'].toString();
+    if (body.containsKey('name')) {
+      updateFields['name'] = body['name'].toString();
     }
     if (body.containsKey('description')) {
       updateFields['description'] = body['description'].toString();
-    }
-    if (body.containsKey('nation')) {
-      updateFields['nation'] = body['nation'].toString();
     }
     if (updateFields.isEmpty) {
       return AppResponse()
           .error(HttpStatus.badRequest, ErrorMessage.EMPTY_FIELD);
     }
-    final result = await musicController.updateMusic(musicId, updateFields);
+    final result = await playlistController.updatePlaylist(
+        jwtUser.id!, playlistId, updateFields);
     return AppResponse().ok(HttpStatus.ok, result.toJson());
   } catch (e) {
     if (e is CustomHttpException) {

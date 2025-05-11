@@ -14,7 +14,6 @@ import '../interface/generate_image_playlist_interface.dart';
 
 /// Service chịu trách nhiệm tạo ảnh đại diện cho playlist
 class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
-  final IImageUploader _imageUploader;
   final IFileService _fileService;
 
   static const int _requiredImagesCount = 4;
@@ -22,18 +21,14 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
   static const int _gridItemSize = 150; // Một nửa kích thước ảnh cuối cùng
 
   PlaylistImageGeneratorService({
-    required IImageUploader imageUploader,
     required IFileService fileService,
-  })  : _imageUploader = imageUploader,
-        _fileService = fileService;
+  }) : _fileService = fileService;
 
   @override
-  Future<String> generateAndUploadPlaylistImage(List<Music> musicList) async {
+  Future<String> generatePlaylistImage(List<Music> musicList) async {
     try {
-      if (musicList.isEmpty) {
-        return await _handleEmptyPlaylist();
-      } else if (musicList.length < _requiredImagesCount) {
-        return await _handleFewTracks(musicList);
+      if (musicList.length < _requiredImagesCount) {
+        return await _generateBlankImage();
       } else {
         return await _handleMultipleTracks(musicList);
       }
@@ -44,34 +39,21 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
     }
   }
 
-  /// Xử lý trường hợp playlist rỗng
-  Future<String> _handleEmptyPlaylist() async {
-    return await _generateAndUploadBlankImage();
-  }
-
-  /// Xử lý trường hợp playlist có ít hơn 4 bài hát
-  Future<String> _handleFewTracks(List<Music> musicList) async {
-    final firstTrackImageUrl = musicList.first.imageUrl;
-
-    if (firstTrackImageUrl == null || firstTrackImageUrl.isEmpty) {
-      return await _generateAndUploadBlankImage();
-    }
-
-    return firstTrackImageUrl;
-  }
-
   /// Xử lý trường hợp playlist có 4 bài hát trở lên
   Future<String> _handleMultipleTracks(List<Music> musicList) async {
     final imageUrls = _extractValidImageUrls(musicList);
 
     if (imageUrls.isEmpty) {
-      return await _generateAndUploadBlankImage();
+      return await _generateBlankImage();
     } else if (imageUrls.length < _requiredImagesCount) {
-      return imageUrls.first;
+      // Trả về đường dẫn tạm chứa ảnh đã tải về từ URL đầu tiên
+      final tempDir = Directory.systemTemp;
+      final imagePath = path.join(tempDir.path, 'single_track_image.jpg');
+      await _downloadImage(imageUrls.first, imagePath);
+      return imagePath;
     }
 
-    return await _combineAndUploadImages(
-        imageUrls.take(_requiredImagesCount).toList());
+    return await _combineImages(imageUrls.take(_requiredImagesCount).toList());
   }
 
   /// Trích xuất các URL ảnh hợp lệ từ danh sách bài hát
@@ -84,23 +66,19 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
         .toList();
   }
 
-  /// Tạo ảnh trắng cho playlist rỗng
-  Future<String> _generateAndUploadBlankImage() async {
+  /// Tạo ảnh trắng cho playlist rỗng và trả về đường dẫn file
+  Future<String> _generateBlankImage() async {
     final tempDir = Directory.systemTemp;
     final blankImagePath = path.join(tempDir.path, 'blank_playlist_cover.png');
 
     await _fileService.createBlankImage(
         path: blankImagePath, width: _imageSize, height: _imageSize);
 
-    final imageUrl = await _imageUploader.uploadPlaylistImage(blankImagePath);
-
-    await _fileService.deleteFile(blankImagePath);
-
-    return imageUrl;
+    return blankImagePath;
   }
 
-  /// Tải xuống, kết hợp và tải lên các hình ảnh dưới dạng lưới 2x2
-  Future<String> _combineAndUploadImages(List<String> imageUrls) async {
+  /// Tải xuống, kết hợp các hình ảnh dưới dạng lưới 2x2 và trả về đường dẫn
+  Future<String> _combineImages(List<String> imageUrls) async {
     try {
       final tempDir = Directory.systemTemp;
       final List<String> downloadedImagePaths = [];
@@ -112,16 +90,14 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
         downloadedImagePaths.add(imagePath);
       }
 
-      // Tạo và tải lên ảnh đã kết hợp
+      // Tạo ảnh đã kết hợp
       final combinedImagePath =
           await _createCombinedImage(downloadedImagePaths);
-      final uploadedImageUrl =
-          await _imageUploader.uploadPlaylistImage(combinedImagePath);
 
-      // Dọn dẹp các file tạm
-      await _cleanupTempFiles([...downloadedImagePaths, combinedImagePath]);
+      // Dọn dẹp các file tạm (giữ lại file ảnh kết hợp)
+      await _cleanupTempFiles(downloadedImagePaths);
 
-      return uploadedImageUrl;
+      return combinedImagePath;
     } catch (e) {
       throw const CustomHttpException(
           ErrorMessage.GENERATE_IMAGE_PLAYLIST_FAILED,
