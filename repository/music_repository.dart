@@ -218,7 +218,7 @@ class MusicRepository implements IMusicRepo {
     try {
       final musicResult = await _db.executor.execute(
         Sql.named('''
-      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl, listenCount, nation
+      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl,albumId, listenCount, nation
       FROM music
       WHERE id = @id
     '''),
@@ -242,8 +242,9 @@ class MusicRepository implements IMusicRepo {
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
-        listenCount: musicRow[8] as int,
-        nation: musicRow[9] as String? ?? '',
+        albumId: musicRow[8] as int?,
+        listenCount: musicRow[9] as int,
+        nation: musicRow[10] as String? ?? '',
       );
 
       final authorResult = await _db.executor.execute(
@@ -468,7 +469,7 @@ class MusicRepository implements IMusicRepo {
 
       final nextMusicResult = await _db.executor.execute(
         Sql.named('''
-        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl,m.listenCount,m.nation
+        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, m.createdAt, m.updatedAt, m.imageUrl,m.albumId,m.listenCount,m.nation
         FROM music m
         JOIN music_author ma ON m.id = ma.musicId
         WHERE ma.authorId = @authorId
@@ -500,8 +501,9 @@ class MusicRepository implements IMusicRepo {
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
         imageUrl: musicRow[7] as String,
-        listenCount: musicRow[8] as int,
-        nation: musicRow[9] as String,
+        albumId: musicRow[8] as int?,
+        listenCount: musicRow[9] as int,
+        nation: musicRow[10] as String,
       );
       if (music.id != null) {
         await incrementListenCount(music.id!);

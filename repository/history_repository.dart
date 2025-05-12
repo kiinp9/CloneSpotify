@@ -6,6 +6,7 @@ import '../constant/config.message.dart';
 import '../database/postgres.dart';
 import '../exception/config.exception.dart';
 import '../model/history.dart';
+import '../model/history_album.dart';
 import '../model/history_author.dart';
 
 abstract class IHistoryRepo {
@@ -18,6 +19,17 @@ abstract class IHistoryRepo {
   Future<HistoryAuthor> addAuthorToHistoryAuthor(int userId, int authorId);
   Future<List<Map<String, dynamic>>> getAuthorByHistoryAuthor(int userId,
       {int offset = 0, int limit = 8});
+  Future<HistoryAlbum?> createHistoryAlbum(
+    int userId,
+    int? albumId,
+    int musicId,
+  );
+
+  Future<List<Map<String, dynamic>>> getAlbumByHistoryAlbum(
+    int userId, {
+    int offset = 0,
+    int limit = 8,
+  });
 }
 
 class HistoryRepository implements IHistoryRepo {
@@ -186,7 +198,7 @@ class HistoryRepository implements IHistoryRepo {
         final existing = await _db.executor.execute(
           Sql.named('''
           SELECT id, userId, authorId, createdAt
-          FROM history
+          FROM history_author
           WHERE userId = @userId AND authorId = @authorId
         '''),
           parameters: {
@@ -269,6 +281,104 @@ class HistoryRepository implements IHistoryRepo {
           'avatarUrl': row[2] as String,
         };
       }).toList();
+    } catch (e) {
+      if (e is CustomHttpException) rethrow;
+
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<HistoryAlbum?> createHistoryAlbum(
+    int userId,
+    int? albumId,
+    int musicId,
+  ) async {
+    try {
+      if (albumId == null) {
+        return null;
+      }
+
+      final result = await _db.executor.execute(
+        Sql.named('''
+        INSERT INTO history_album (userId, albumId, musicId)
+        VALUES (@userId, @albumId, @musicId)
+        ON CONFLICT (userId, albumId, musicId) DO NOTHING
+        RETURNING id, albumId, musicId, createdAt
+      '''),
+        parameters: {
+          'userId': userId,
+          'albumId': albumId,
+          'musicId': musicId,
+        },
+      );
+
+      if (result.isEmpty) {
+        return null;
+      }
+
+      final row = result.first;
+      final historyAlbum = HistoryAlbum(
+        id: row[0] as int,
+        userId: row[1] as int,
+        albumId: row[2] as int,
+        musicId: row[3] as int,
+        createdAt: row[4] as DateTime,
+      );
+
+      return historyAlbum;
+    } catch (e) {
+      if (e is CustomHttpException) rethrow;
+
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAlbumByHistoryAlbum(
+    int userId, {
+    int offset = 0,
+    int limit = 8,
+  }) async {
+    try {
+      final result = await _db.executor.execute(
+        Sql.named('''
+        SELECT
+          a.id AS albumId, 
+          a.albumTitle AS authorAlbumTitle,
+          a.linkUrlImageAlbum AS albumLinkUrlImageAlbum
+        FROM history_album hal
+        JOIN album a ON hal.albumId = a.id  -- Kiểm tra lại đây
+        WHERE hal.userId = @userId
+        ORDER BY hal.createdAt DESC
+        LIMIT @limit OFFSET @offset
+      '''),
+        parameters: {
+          'userId': userId,
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (result.isEmpty) {
+        return [];
+      }
+
+      final albums = result.map((row) {
+        return {
+          'albumId': row[0] as int,
+          'albumTitle': row[1] as String,
+          'linkUrlImageAlbum': row[2] as String,
+        };
+      }).toList();
+
+      return albums;
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
