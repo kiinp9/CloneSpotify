@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 
 import '../../../constant/config.message.dart';
-import '../../../controllers/playlist_controller.dart';
+import '../../../controllers/history_controller.dart';
 import '../../../controllers/user_controller.dart';
 import '../../../exception/config.exception.dart';
 import '../../../model/response.dart';
@@ -15,7 +15,7 @@ Future<Response> onRequest(RequestContext context) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
   final jwtUser = context.read<User?>();
-  final playlistController = context.read<PlaylistController>();
+  final _historyController = context.read<HistoryController>();
   final userController = context.read<UserController>();
   if (jwtUser == null) {
     return AppResponse()
@@ -27,10 +27,7 @@ Future<Response> onRequest(RequestContext context) async {
       return AppResponse()
           .error(HttpStatus.notFound, ErrorMessage.USER_NOT_FOUND);
     }
-    final body = await context.request.json();
-    final playlistId = body['playlistId'] as int;
-    final result =
-        await playlistController.getMusicByPlaylistId(jwtUser.id!, playlistId);
+    final result = await _historyController.getMusicByHistory(jwtUser.id!);
     return AppResponse().ok(HttpStatus.ok, result);
   } catch (e) {
     if (e is CustomHttpException) {

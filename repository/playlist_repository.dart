@@ -412,6 +412,7 @@ class PlaylistRepository implements IPlaylistRepo {
         SELECT 
           m.id AS musicId,
           m.title AS musicTitle,
+          m.imageUrl AS musicImageUrl,
           a.name AS authorName
         FROM playlistItem pi
         JOIN music m ON pi.musicId = m.id
@@ -433,12 +434,14 @@ class PlaylistRepository implements IPlaylistRepo {
       for (var row in result) {
         final musicId = row[0] as int;
         final title = row[1] as String;
-        final authorName = row[2] as String;
+        final imageUrl = row[2] as String;
+        final authorName = row[3] as String;
 
         grouped.putIfAbsent(
           musicId,
           () => {
             'title': title,
+            'imageUrl': imageUrl,
             'authors': <String>[],
           },
         );
@@ -448,6 +451,7 @@ class PlaylistRepository implements IPlaylistRepo {
       return grouped.values
           .map((entry) => {
                 'title': entry['title'],
+                'imageUrl': entry['imageUrl'],
                 'authors': (entry['authors'] as List<String>).join(', ')
               })
           .toList();

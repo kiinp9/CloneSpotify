@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:dart_frog/dart_frog.dart';
 
-import '../../constant/config.message.dart';
-import '../../controllers/album_controller.dart';
-import '../../exception/config.exception.dart';
-import '../../model/response.dart';
+import '../../../constant/config.message.dart';
+import '../../../controllers/album_controller.dart';
+import '../../../exception/config.exception.dart';
+import '../../../model/response.dart';
 
 Future<Response> onRequest(RequestContext context, String id) async {
   if (context.request.method.value != 'GET') {

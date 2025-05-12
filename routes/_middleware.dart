@@ -4,6 +4,7 @@ import 'package:dart_frog/dart_frog.dart';
 import '../controllers/album_controller.dart';
 import '../controllers/author_controller.dart';
 import '../controllers/category_controller.dart';
+import '../controllers/history_controller.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/playlist_controller.dart';
 import '../controllers/user_controller.dart';
@@ -21,6 +22,7 @@ import '../model/users.dart';
 import '../repository/album_repository.dart';
 import '../repository/author_repository.dart';
 import '../repository/category_repository.dart';
+import '../repository/history_repository.dart';
 import '../repository/music_repository.dart';
 import '../repository/playlist_repository.dart';
 import '../repository/user_repository.dart';
@@ -34,6 +36,7 @@ Handler middleware(Handler handler) {
   final categoryRepository = CategoryRepository(database);
   final albumRepository = AlbumRepository(database);
   final playlistRepository = PlaylistRepository(database);
+  final historyRepository = HistoryRepository(database);
   final redisService = RedisService();
   final jwtService = JwtService(redisService);
   final uploadMusicService = UploadMusicService();
@@ -44,6 +47,7 @@ Handler middleware(Handler handler) {
   final albumController = AlbumController(albumRepository);
   final categoryController = CategoryController(categoryRepository);
   final playlistController = PlaylistController(playlistRepository);
+  final historyController = HistoryController(historyRepository);
   final jwtMiddleware = createJwtMiddleware(jwtService, redisService);
 
   return handler
@@ -57,6 +61,7 @@ Handler middleware(Handler handler) {
       .use(provider<CategoryController>((context) => categoryController))
       .use(provider<AlbumController>((context) => albumController))
       .use(provider<PlaylistController>((context) => playlistController))
+      .use(provider<HistoryController>((context) => historyController))
       .use(provider<UploadMusicService>((context) => uploadMusicService))
       .use(provider<UploadAlbumService>((context) => uploadAlbumService))
       .use(loggingMiddleware())
@@ -95,6 +100,9 @@ Middleware injectionController(JwtService jwtService) {
     })).use(provider<PlaylistController>((context) {
       final playlistRepository = context.read<PlaylistRepository>();
       return PlaylistController(playlistRepository);
+    })).use(provider<HistoryController>((context) {
+      final historyRepository = context.read<HistoryRepository>();
+      return HistoryController(historyRepository);
     })).use(loggingMiddleware());
   };
 }
