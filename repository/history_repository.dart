@@ -304,11 +304,11 @@ class HistoryRepository implements IHistoryRepo {
 
       final result = await _db.executor.execute(
         Sql.named('''
-        INSERT INTO history_album (userId, albumId, musicId)
-        VALUES (@userId, @albumId, @musicId)
-        ON CONFLICT (userId, albumId, musicId) DO NOTHING
-        RETURNING id, albumId, musicId, createdAt
-      '''),
+      INSERT INTO history_album (userId, albumId, musicId)
+      VALUES (@userId, @albumId, @musicId)
+      ON CONFLICT (userId, albumId, musicId) DO NOTHING
+      RETURNING id, userId, albumId, musicId, createdAt
+    '''),
         parameters: {
           'userId': userId,
           'albumId': albumId,
@@ -321,6 +321,7 @@ class HistoryRepository implements IHistoryRepo {
       }
 
       final row = result.first;
+
       final historyAlbum = HistoryAlbum(
         id: row[0] as int,
         userId: row[1] as int,
