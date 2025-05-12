@@ -440,6 +440,7 @@ class PlaylistRepository implements IPlaylistRepo {
         grouped.putIfAbsent(
           musicId,
           () => {
+            'musicId': musicId,
             'title': title,
             'imageUrl': imageUrl,
             'authors': <String>[],
@@ -450,6 +451,7 @@ class PlaylistRepository implements IPlaylistRepo {
 
       return grouped.values
           .map((entry) => {
+                'id': entry['musicId'],
                 'title': entry['title'],
                 'imageUrl': entry['imageUrl'],
                 'authors': (entry['authors'] as List<String>).join(', ')

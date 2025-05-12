@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 
 import '../../../../constant/config.message.dart';
+import '../../../../controllers/history_controller.dart';
 import '../../../../controllers/music_controller.dart';
 import '../../../../exception/config.exception.dart';
 import '../../../../model/response.dart';
@@ -14,6 +15,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
   final musicController = context.read<MusicController>();
+  final historyController = context.read<HistoryController>();
   final user = context.read<User?>();
   if (user == null || user.id == null) {
     return AppResponse().error(HttpStatus.forbidden, ErrorMessage.FORBIDDEN);
@@ -33,6 +35,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     }
     await musicController.playNextMusic(user.id!, result.id.toString());
     await musicController.incrementListenCount(result.id!);
+    await historyController.addMusicToHistory(user.id!, result.id!);
     return AppResponse().ok(HttpStatus.ok, {
       'music': {
         'id': result.id,

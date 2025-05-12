@@ -1,4 +1,5 @@
 import '../model/history.dart';
+import '../model/history_author.dart';
 import '../repository/history_repository.dart';
 
 class HistoryController {
@@ -10,8 +11,36 @@ class HistoryController {
     return result;
   }
 
-  Future<List<Map<String, dynamic>>> getMusicByHistory(int userId) async {
-    final result = await _historyRepository.getMusicByHistory(userId);
+  Future<List<Map<String, dynamic>>> getMusicByHistory(
+    int userId, {
+    int offset = 0,
+    int limit = 8,
+  }) async {
+    final result = await _historyRepository.getMusicByHistory(
+      userId,
+      offset: offset,
+      limit: limit,
+    );
+    return result;
+  }
+
+  Future<HistoryAuthor> addAuthorToHistoryAuthor(
+      int userId, int authorId) async {
+    final result =
+        await _historyRepository.addAuthorToHistoryAuthor(userId, authorId);
+    return result;
+  }
+
+  Future<List<Map<String, dynamic>>> getAuthorByHistoryAuthor(
+    int userId, {
+    int offset = 0,
+    int limit = 8,
+  }) async {
+    final result = await _historyRepository.getAuthorByHistoryAuthor(
+      userId,
+      offset: offset,
+      limit: limit,
+    );
     return result;
   }
 }

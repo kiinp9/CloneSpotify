@@ -6,10 +6,18 @@ import '../constant/config.message.dart';
 import '../database/postgres.dart';
 import '../exception/config.exception.dart';
 import '../model/history.dart';
+import '../model/history_author.dart';
 
 abstract class IHistoryRepo {
   Future<History> addMusicToHistory(int userId, int musicId);
-  Future<List<Map<String, dynamic>>> getMusicByHistory(int userId);
+  Future<List<Map<String, dynamic>>> getMusicByHistory(
+    int userId, {
+    int offset = 0,
+    int limit = 8,
+  });
+  Future<HistoryAuthor> addAuthorToHistoryAuthor(int userId, int authorId);
+  Future<List<Map<String, dynamic>>> getAuthorByHistoryAuthor(int userId,
+      {int offset = 0, int limit = 8});
 }
 
 class HistoryRepository implements IHistoryRepo {
@@ -87,16 +95,12 @@ class HistoryRepository implements IHistoryRepo {
   }
 
   @override
-  Future<List<Map<String, dynamic>>> getMusicByHistory(int userId) async {
+  Future<List<Map<String, dynamic>>> getMusicByHistory(
+    int userId, {
+    int offset = 0,
+    int limit = 8,
+  }) async {
     try {
-      final history = await _db.executor.execute(
-        Sql.named('''SELECT * FROM history WHERE userId = @userId'''),
-        parameters: {'userId': userId},
-      );
-      if (history.isEmpty) {
-        return [];
-      }
-
       final result = await _db.executor.execute(
         Sql.named('''
 
@@ -111,9 +115,14 @@ class HistoryRepository implements IHistoryRepo {
           JOIN author a ON ma.authorId = a.id
         WHERE h.userId = @userId
         ORDER BY h.createdAt DESC
+               LIMIT @limit OFFSET @offset
 
 '''),
-        parameters: {'userId': userId},
+        parameters: {
+          'userId': userId,
+          'limit': limit,
+          'offset': offset,
+        },
       );
 
       final Map<int, Map<String, dynamic>> grouped = {};
@@ -145,6 +154,123 @@ class HistoryRepository implements IHistoryRepo {
       if (e is CustomHttpException) {
         rethrow;
       }
+
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<HistoryAuthor> addAuthorToHistoryAuthor(
+      int userId, int authorId) async {
+    try {
+      final now = DateTime.now();
+
+      final result = await _db.executor.execute(
+        Sql.named('''
+        INSERT INTO history_author (userId, authorId, createdAt)
+        VALUES (@userId, @authorId, @createdAt)
+        ON CONFLICT (userId, authorId) DO NOTHING
+        RETURNING id, userId, authorId, createdAt
+      '''),
+        parameters: {
+          'userId': userId,
+          'authorId': authorId,
+          'createdAt': now,
+        },
+      );
+
+      if (result.isEmpty || result.first.isEmpty) {
+        final existing = await _db.executor.execute(
+          Sql.named('''
+          SELECT id, userId, authorId, createdAt
+          FROM history
+          WHERE userId = @userId AND authorId = @authorId
+        '''),
+          parameters: {
+            'userId': userId,
+            'authorId': authorId,
+          },
+        );
+
+        if (existing.isEmpty || existing.first.isEmpty) {
+          throw const CustomHttpException(
+            ErrorMessageSQL.SQL_QUERY_ERROR,
+            HttpStatus.internalServerError,
+          );
+        }
+
+        final row = existing.first;
+        final historyAuthor = HistoryAuthor(
+          id: row[0] as int,
+          userId: row[1] as int,
+          authorId: row[2] as int,
+          createdAt: row[3] as DateTime?,
+        );
+
+        return historyAuthor;
+      }
+
+      final row = result.first;
+      final historyAuthor = HistoryAuthor(
+        id: row[0] as int,
+        userId: row[1] as int,
+        authorId: row[2] as int,
+        createdAt: row[3] as DateTime?,
+      );
+
+      return historyAuthor;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getAuthorByHistoryAuthor(
+    int userId, {
+    int offset = 0,
+    int limit = 8,
+  }) async {
+    try {
+      final result = await _db.executor.execute(
+        Sql.named('''
+        SELECT
+          a.id AS authorId,
+          a.name AS authorName,
+          a.avatarUrl AS authorAvatarUrl
+        FROM history_author ha
+        JOIN author a ON ha.authorId = a.id
+        WHERE ha.userId = @userId
+        ORDER BY ha.createdAt DESC
+        LIMIT @limit OFFSET @offset
+      '''),
+        parameters: {
+          'userId': userId,
+          'limit': limit,
+          'offset': offset,
+        },
+      );
+
+      if (result.isEmpty) return [];
+
+      return result.map((row) {
+        return {
+          'authorId': row[0] as int,
+          'authorName': row[1] as String,
+          'avatarUrl': row[2] as String,
+        };
+      }).toList();
+    } catch (e) {
+      if (e is CustomHttpException) rethrow;
 
       throw CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
