@@ -25,6 +25,7 @@ abstract class IAlbumRepo {
   Future<Album?> findAlbumByAlbumTitle(String albumTitle);
   Future<Album> updateAlbum(int albumId, Map<String, dynamic> updateFields);
   Future<Album> deleteAlbumById(int albumId);
+  Future<Map<String, dynamic>> showMusicByAlbumId(int albumId);
 }
 
 class AlbumRepository implements IAlbumRepo {
@@ -375,7 +376,7 @@ WHERE ala.albumId = @id
 
       final categoryResult = await _db.executor.execute(
         Sql.named('''
-SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt
+SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt,c.imageUrl
 FROM category c
 JOIN album_category alc ON c.id = alc.categoryId
 WHERE alc.albumId = @id
@@ -390,6 +391,7 @@ WHERE alc.albumId = @id
           description: row[2] as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
+          imageUrl: row[5] as String,
         );
       }).toList();
 
@@ -479,7 +481,7 @@ WHERE ala.albumId = @id
 
       final categoryResult = await _db.executor.execute(
         Sql.named('''
-SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt
+SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt,c.imageUrl
 FROM category c
 JOIN album_category alc ON c.id = alc.categoryId
 WHERE alc.albumId = @id
@@ -494,6 +496,7 @@ WHERE alc.albumId = @id
           description: row[2] as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
+          imageUrl: row[5] as String,
         );
       }).toList();
 
@@ -651,6 +654,101 @@ DELETE FROM album WHERE id = @id
       if (e is CustomHttpException) {
         rethrow;
       }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> showMusicByAlbumId(int albumId) async {
+    try {
+      final albumResult = await _db.executor.execute(Sql.named('''
+      SELECT id, albumTitle, description, linkUrlImageAlbum, createdAt, updatedAt, nation, listenCountAlbum
+      FROM album
+      WHERE id = @albumId
+    '''), parameters: {
+        'albumId': albumId,
+      });
+
+      if (albumResult.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.ALBUM_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
+
+      final albumRow = albumResult.first;
+      final album = Album(
+        id: albumRow[0] as int,
+        albumTitle: albumRow[1] as String,
+        description: albumRow[2] as String,
+        linkUrlImageAlbum: albumRow[3] as String,
+        createdAt: _parseDate(albumRow[4]),
+        updatedAt: _parseDate(albumRow[5]),
+        nation: albumRow[6] as String? ?? '',
+        listenCountAlbum: albumRow[7] as int,
+      );
+
+      final musicResult = await _db.executor.execute(Sql.named('''
+      SELECT 
+        m.id AS musicId,
+        m.title AS musicTitle,
+        m.imageUrl AS musicImageUrl,
+        a.name AS authorName
+      FROM music m
+        JOIN music_author ma ON m.id = ma.musicId
+        JOIN author a ON ma.authorId = a.id
+      WHERE m.albumId = @albumId
+    '''), parameters: {
+        'albumId': albumId,
+      });
+
+      final Map<int, Map<String, dynamic>> grouped = {};
+      for (var row in musicResult) {
+        final musicId = row[0] as int;
+        final title = row[1] as String;
+        final imageUrl = row[2] as String;
+        final authorName = row[3] as String;
+
+        grouped.putIfAbsent(
+          musicId,
+          () => {
+            'musicId': musicId,
+            'title': title,
+            'imageUrl': imageUrl,
+            'authors': <String>[],
+          },
+        );
+        (grouped[musicId]!['authors'] as List<String>).add(authorName);
+      }
+
+      final musics = grouped.values
+          .map((entry) => {
+                'id': entry['musicId'],
+                'title': entry['title'],
+                'imageUrl': entry['imageUrl'],
+                'authors': (entry['authors'] as List<String>).join(', '),
+              })
+          .toList();
+
+      return {
+        'album': {
+          'id': album.id,
+          'albumTitle': album.albumTitle,
+          'description': album.description,
+          'linkUrlImageAlbum': album.linkUrlImageAlbum,
+          'createdAt': album.createdAt?.toIso8601String(),
+          'updatedAt': album.updatedAt?.toIso8601String(),
+          'nation': album.nation,
+          'listenCountAlbum': album.listenCountAlbum,
+        },
+        'musics': musics,
+      };
+    } catch (e) {
+      if (e is CustomHttpException) rethrow;
+
       throw CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,

@@ -90,4 +90,9 @@ class AlbumController {
     final album = await _albumRepository.deleteAlbumById(albumId);
     return album;
   }
+
+  Future<Map<String, dynamic>> showMusicByAlbumId(int albumId) async {
+    final music = await _albumRepository.showMusicByAlbumId(albumId);
+    return music;
+  }
 }
