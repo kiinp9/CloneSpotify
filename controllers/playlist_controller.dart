@@ -1,10 +1,13 @@
+import '../database/iredis.dart';
+import '../model/music.dart';
 import '../model/playlist.dart';
 import '../repository/playlist_repository.dart';
 
 class PlaylistController {
   final PlaylistRepository _playlistRepository;
 
-  PlaylistController(this._playlistRepository);
+  PlaylistController(this._playlistRepository, this._redisService);
+  final IRedisService _redisService;
 
   Future<int?> createPlaylist(Playlist playlist) async {
     final result = await _playlistRepository.createPlaylist(playlist);
@@ -46,5 +49,45 @@ class PlaylistController {
   Future<Playlist> deletePlaylist(int userId, int playlistId) async {
     final result = await _playlistRepository.deletePlaylist(userId, playlistId);
     return result;
+  }
+
+  Future<Music> playMusicInPlayList(
+      int userId, int playlistId, int musicId) async {
+    final result = await _playlistRepository.playMusicInPlayList(
+        userId, playlistId, musicId);
+    return result;
+  }
+
+  Future<Music?> nextMusic(
+      int currentMusicId, int userId, int playlistId) async {
+    final result =
+        await _playlistRepository.nextMusic(currentMusicId, userId, playlistId);
+    return result;
+  }
+
+  Future<void> incrementListenCount(int musicId) async {
+    final result = await _playlistRepository.incrementListenCount(musicId);
+    return result;
+  }
+
+  Future<void> setPlayMusicHistory(int userId, String musicId) async {
+    final music = await _redisService.setPlayMusicHistory(userId, musicId);
+    return music;
+  }
+
+  Future<List<String>> getPlayMusicHistory(int userId) async {
+    final music = await _redisService.getPlayMusicHistory(userId);
+    return music;
+  }
+
+  Future<void> playNextMusic(int userId, String nextMusicId) async {
+    final music = await _redisService.playNextMusic(userId, nextMusicId);
+    return music;
+  }
+
+  Future<String?> rewindMusicFromHistory(int userId, int currentMusicId) async {
+    final music = await _redisService.rewindMusic(userId, currentMusicId);
+
+    return music;
   }
 }

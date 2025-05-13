@@ -8,6 +8,7 @@ import '../libs/cloudinary/service/upload-imagePlaylist.service.dart';
 import '../libs/file/service/file.service.dart';
 import '../libs/generate_image/interface/generate_image_playlist_interface.dart';
 import '../libs/generate_image/service/generate_image_playlist.dart';
+import '../model/author.dart';
 import '../model/music.dart';
 import '../model/playlist.dart';
 import '../database/postgres.dart';
@@ -23,6 +24,9 @@ abstract class IPlaylistRepo {
   Future<Playlist> updatePlaylist(
       int userId, int playlistId, Map<String, dynamic> updateFields);
   Future<Playlist> deletePlaylist(int userId, int playlistId);
+  Future<Music> playMusicInPlayList(int userId, int playlistId, int musicId);
+  Future<Music?> nextMusic(int currentMusicId, int userId, int playlistId);
+  Future<void> incrementListenCount(int musicId);
 }
 
 class PlaylistRepository implements IPlaylistRepo {
@@ -672,6 +676,264 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
       return deletedPlaylist;
     } catch (e) {
       if (e is CustomHttpException) rethrow;
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  Future<Music> playMusicInPlayList(
+    int userId,
+    int playlistId,
+    int musicId,
+  ) async {
+    try {
+      final checkPlaylist = await _db.executor.execute(
+        Sql.named('''
+        SELECT * FROM playlist 
+        WHERE userId = @userId AND id = @playlistId
+      '''),
+        parameters: {'userId': userId, 'playlistId': playlistId},
+      );
+
+      if (checkPlaylist.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.PLAYLIST_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
+
+      final playlistItemResult = await _db.executor.execute(Sql.named('''
+      SELECT pi.id
+      FROM playlistItem pi
+      JOIN playlist p ON pi.playlistId = p.id
+      WHERE pi.musicId = @musicId AND p.userId = @userId
+    '''), parameters: {
+        'musicId': musicId,
+        'userId': userId,
+      });
+
+      if (playlistItemResult.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.NOT_FOUND_MUSIC_IN_PLAYLIST,
+          HttpStatus.notFound,
+        );
+      }
+
+      final musicResult = await _db.executor.execute(Sql.named('''
+      SELECT id, title, description, broadcastTime, linkUrlMusic,
+             createdAt, updatedAt, imageUrl, albumId, listenCount, nation
+      FROM music
+      WHERE id = @musicId
+    '''), parameters: {
+        'musicId': musicId,
+      });
+
+      if (musicResult.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.MUSIC_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
+
+      final row = musicResult.first;
+      final music = Music(
+        id: row[0] as int,
+        title: row[1] as String,
+        description: row[2] as String?,
+        broadcastTime: row[3] as int?,
+        linkUrlMusic: row[4] as String?,
+        createdAt: _parseDate(row[5]),
+        updatedAt: _parseDate(row[6]),
+        imageUrl: row[7] as String?,
+        albumId: row[8] as int?,
+        listenCount: row[9] as int,
+        nation: row[10] as String? ?? '',
+      );
+
+      final author = await _db.executor.execute(
+        Sql.named('''
+        SELECT a.id, a.name, a.description, a.avatarUrl,
+               a.followingCount, a.createdAt, a.updatedAt
+        FROM author a
+        JOIN music_author ma ON a.id = ma.authorId
+        WHERE ma.musicId = @musicId
+      '''),
+        parameters: {'musicId': music.id},
+      );
+
+      music.authors = author.map((row) {
+        return Author(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          avatarUrl: row[3] as String?,
+          followingCount: row[4] as int,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
+        );
+      }).toList();
+
+      return music;
+    } catch (e) {
+      if (e is CustomHttpException) rethrow;
+
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<Music?> nextMusic(
+      int currentMusicId, int userId, int playlistId) async {
+    try {
+      final checkPlaylist = await _db.executor.execute(
+        Sql.named(
+            '''SELECT * FROM playlist WHERE userId = @userId AND id= @playlistId'''),
+        parameters: {'userId': userId, 'playlistId': playlistId},
+      );
+
+      if (checkPlaylist.isEmpty) {
+        throw const CustomHttpException(
+            ErrorMessage.PLAYLIST_NOT_FOUND, HttpStatus.notFound);
+      }
+
+      final currentItemResult = await _db.executor.execute(Sql.named('''
+      SELECT pi.id FROM playlistItem pi
+      JOIN playlist p ON pi.playlistId = p.id
+      WHERE pi.musicId = @currentMusicId AND p.id = @playlistId AND p.userId = @userId
+    '''), parameters: {
+        'currentMusicId': currentMusicId,
+        'playlistId': playlistId,
+        'userId': userId,
+      });
+
+      if (currentItemResult.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.NOT_FOUND_MUSIC_IN_PLAYLIST,
+          HttpStatus.notFound,
+        );
+      }
+
+      final currentPlaylistItemId = currentItemResult.first[0] as int;
+
+      final nextItemResult = await _db.executor.execute(Sql.named('''
+      SELECT musicId FROM playlistItem
+      WHERE playlistId = @playlistId AND id > @currentItemId
+      ORDER BY id ASC
+      LIMIT 1
+    '''), parameters: {
+        'playlistId': playlistId,
+        'currentItemId': currentPlaylistItemId,
+      });
+
+      if (nextItemResult.isEmpty) {
+        return null;
+      }
+
+      final nextMusicId = nextItemResult.first[0] as int;
+
+      final musicResult = await _db.executor.execute(Sql.named('''
+      SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl, albumId, listenCount, nation
+      FROM music
+      WHERE id = @musicId
+    '''), parameters: {
+        'musicId': nextMusicId,
+      });
+
+      if (musicResult.isEmpty) {
+        return null;
+      }
+
+      final row = musicResult.first;
+      final music = Music(
+        id: row[0] as int,
+        title: row[1] as String?,
+        description: row[2] as String?,
+        broadcastTime: row[3] as int?,
+        linkUrlMusic: row[4] as String?,
+        createdAt: _parseDate(row[5]),
+        updatedAt: _parseDate(row[6]),
+        imageUrl: row[7] as String?,
+        albumId: row[8] as int?,
+        listenCount: row[9] as int,
+        nation: row[10] as String?,
+      );
+
+      final author = await _db.executor.execute(
+        Sql.named('''
+        SELECT a.id, a.name, a.description, a.avatarUrl,a.followingCount, a.createdAt, a.updatedAt
+        FROM author a
+        JOIN music_author ma ON a.id = ma.authorId
+        WHERE ma.musicId = @musicId
+      '''),
+        parameters: {'musicId': music.id},
+      );
+
+      music.authors = author.map((row) {
+        return Author(
+          id: row[0] as int,
+          name: row[1] as String,
+          description: row[2] as String,
+          avatarUrl: row[3] as String?,
+          followingCount: row[4] as int,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
+        );
+      }).toList();
+
+      return music;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<void> incrementListenCount(int musicId) async {
+    try {
+      await _db.executor.execute(
+        Sql.named('''
+        UPDATE music
+        SET listenCount = listenCount + 1
+        WHERE id = @id
+      '''),
+        parameters: {'id': musicId},
+      );
+
+      final result = await _db.executor.execute(
+        Sql.named('SELECT albumId FROM music WHERE id = @musicId'),
+        parameters: {'musicId': musicId},
+      );
+
+      if (result.isEmpty || result.first.isEmpty) {
+        return;
+      }
+
+      final albumId = result.first[0] as int?;
+
+      if (albumId != null) {
+        await _db.executor.execute(
+          Sql.named('''
+          UPDATE album
+          SET listenCountAlbum = listenCountAlbum + 1
+          WHERE id = @albumId
+        '''),
+          parameters: {'albumId': albumId},
+        );
+      }
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
       throw CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,

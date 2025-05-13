@@ -52,7 +52,8 @@ Handler middleware(Handler handler) {
   final authorController = AuthorController(authorRepository);
   final albumController = AlbumController(albumRepository);
   final categoryController = CategoryController(categoryRepository);
-  final playlistController = PlaylistController(playlistRepository);
+  final playlistController =
+      PlaylistController(playlistRepository, redisService);
   final historyController = HistoryController(historyRepository);
   final likeMusicController = LikeMusicController(likeMusicRepository);
   final followAuthorController = FollowAuthorController(followAuthorRepository);
@@ -110,7 +111,7 @@ Middleware injectionController(JwtService jwtService) {
       return AlbumController(albumRepository);
     })).use(provider<PlaylistController>((context) {
       final playlistRepository = context.read<PlaylistRepository>();
-      return PlaylistController(playlistRepository);
+      return PlaylistController(playlistRepository, redisService);
     })).use(provider<HistoryController>((context) {
       final historyRepository = context.read<HistoryRepository>();
       return HistoryController(historyRepository);
