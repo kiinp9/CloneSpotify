@@ -45,6 +45,7 @@ Future<Response> onRequest(RequestContext context) async {
           'name': author.name,
           'description': author.description,
           'avatarUrl': author.avatarUrl,
+          'followingCount': author.followingCount,
           'createdAt': author.createdAt?.toIso8601String(),
           'updatedAt': author.updatedAt?.toIso8601String(),
         };

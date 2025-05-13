@@ -27,6 +27,7 @@ Future<Response> onRequest(RequestContext context) async {
         'name': result?.name,
         'description': result?.description,
         'avatarUrl': result?.avatarUrl,
+        'followingCount': result?.followingCount,
         'createdAt': result?.createdAt?.toIso8601String(),
         'updatedAt': result?.updatedAt?.toIso8601String(),
       },
@@ -38,6 +39,8 @@ Future<Response> onRequest(RequestContext context) async {
           'linkUrlImageAlbum': album.linkUrlImageAlbum,
           'createdAt': album.createdAt?.toIso8601String(),
           'updatedAt': album.updatedAt?.toIso8601String(),
+          'nation': album.nation,
+          'listenCountAlbum': album.listenCountAlbum,
         };
       }).toList(),
       'musics': result?.musics?.map((music) {
@@ -50,6 +53,8 @@ Future<Response> onRequest(RequestContext context) async {
           'createdAt': music.createdAt?.toIso8601String(),
           'updatedAt': music.updatedAt?.toIso8601String(),
           'imageUrl': music.imageUrl,
+          'nation': music.nation,
+          'listenCount': music.listenCount,
         };
       }).toList(),
     });

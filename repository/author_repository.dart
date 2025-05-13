@@ -116,15 +116,18 @@ SELECT al.id,
     try {
       final authorResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, name, description, avatarUrl,followingCount, createdAt, updatedAt 
+        SELECT id, name, description, avatarUrl, followingCount, createdAt, updatedAt 
         FROM author 
-WHERE LOWER(name) = LOWER(@name)
-'''),
+        WHERE LOWER(name) = LOWER(@name)
+      '''),
         parameters: {'name': name},
       );
+
       if (authorResult.isEmpty || authorResult.first.isEmpty) {
         throw const CustomHttpException(
-            ErrorMessage.AUTHOR_NOT_FOUND, HttpStatus.notFound);
+          ErrorMessage.AUTHOR_NOT_FOUND,
+          HttpStatus.notFound,
+        );
       }
 
       final row = authorResult.first;
@@ -137,23 +140,18 @@ WHERE LOWER(name) = LOWER(@name)
         createdAt: _parseDate(row[5]),
         updatedAt: _parseDate(row[6]),
       );
+
       final albumResult = await _db.executor.execute(
         Sql.named('''
-SELECT al.id,
-  al.albumTitle,
-  al.description,
-  al.linkUrlImageAlbum,
-
-  al.createdAt,
-  al.updatedAt,
-    al.nation,
-  al.listenCountAlbum
-  FROM album al
-  JOIN album_author ala ON al.id = ala.albumId
-  WHERE ala.authorId = @id
-'''),
-        parameters: {'authorId': author.id},
+        SELECT al.id, al.albumTitle, al.description, al.linkUrlImageAlbum,
+               al.createdAt, al.updatedAt, al.nation, al.listenCountAlbum
+        FROM album al
+        JOIN album_author ala ON al.id = ala.albumId
+        WHERE ala.authorId = @id
+      '''),
+        parameters: {'id': author.id},
       );
+
       author.albums = albumResult.map((albumRow) {
         return Album(
           id: albumRow[0] as int,
@@ -169,13 +167,13 @@ SELECT al.id,
 
       final musicResult = await _db.executor.execute(
         Sql.named('''
-    SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, 
-               m.createdAt, m.updatedAt, m.imageUrl,m.nation, m.listenCount
+        SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, 
+               m.createdAt, m.updatedAt, m.imageUrl, m.nation, m.listenCount
         FROM music m
         JOIN music_author ma ON m.id = ma.musicId
         WHERE ma.authorId = @id
-'''),
-        parameters: {'authorId': author.id},
+      '''),
+        parameters: {'id': author.id},
       );
 
       author.musics = musicResult.map((musicRow) {
@@ -192,6 +190,7 @@ SELECT al.id,
           listenCount: musicRow[9] as int,
         );
       }).toList();
+
       return author;
     } catch (e) {
       if (e is CustomHttpException) {
