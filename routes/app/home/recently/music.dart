@@ -37,6 +37,7 @@ Future<Response> onRequest(RequestContext context) async {
 
     final musicJson = musics.map((music) {
       return {
+        'id': music['id'],
         'title': music['title'],
         'imageUrl': music['imageUrl'],
         'authors': music['authors'],
