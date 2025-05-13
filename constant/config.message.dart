@@ -88,4 +88,5 @@ class ErrorMessage {
       'playlist của bạn không tồn tại bài hát nào';
   static const String NO_PLAYLIST_FOUND =
       'Người dùng hiện tại chưa có playlist nào';
+  static const String NOT_FOLLOWING = 'Bạn chưa theo dõi nhạc sĩ/ban nhạc này';
 }

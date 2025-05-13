@@ -249,7 +249,7 @@ class MusicRepository implements IMusicRepo {
 
       final authorResult = await _db.executor.execute(
         Sql.named('''
-      SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt
+      SELECT a.id, a.name, a.description, a.avatarUrl,a.followingCount, a.createdAt, a.updatedAt
       FROM author a
       JOIN music_author ma ON a.id = ma.authorId
       WHERE ma.musicId = @id
@@ -263,8 +263,9 @@ class MusicRepository implements IMusicRepo {
           name: row[1] as String,
           description: row[2] as String,
           avatarUrl: row[3] as String?,
-          createdAt: _parseDate(row[4]),
-          updatedAt: _parseDate(row[5]),
+          followingCount: row[4] as int,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
         );
       }).toList();
 
@@ -336,7 +337,7 @@ class MusicRepository implements IMusicRepo {
 
       final authorResult = await _db.executor.execute(
         Sql.named('''
-      SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt 
+      SELECT a.id, a.name, a.description, a.avatarUrl,a.followingCount, a.createdAt, a.updatedAt 
       FROM author a 
       JOIN music_author ma ON a.id = ma.authorId 
       WHERE ma.musicId = @musicId
@@ -350,14 +351,15 @@ class MusicRepository implements IMusicRepo {
           name: row[1] as String,
           description: row[2] as String,
           avatarUrl: row[3] as String?,
-          createdAt: _parseDate(row[4]),
-          updatedAt: _parseDate(row[5]),
+          followingCount: row[4] as int,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
         );
       }).toList();
 
       final categoryResult = await _db.executor.execute(
         Sql.named('''
-      SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt 
+      SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt ,imageUrl
       FROM category c 
       JOIN music_category mc ON c.id = mc.categoryId 
       WHERE mc.musicId = @musicId
@@ -372,6 +374,7 @@ class MusicRepository implements IMusicRepo {
           description: row[2] as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
+          imageUrl: row[5] as String,
         );
       }).toList();
 
@@ -511,7 +514,7 @@ class MusicRepository implements IMusicRepo {
 
       final author = await _db.executor.execute(
         Sql.named('''
-        SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt
+        SELECT a.id, a.name, a.description, a.avatarUrl,a.followingCount, a.createdAt, a.updatedAt
         FROM author a
         JOIN music_author ma ON a.id = ma.authorId
         WHERE ma.musicId = @musicId
@@ -525,8 +528,9 @@ class MusicRepository implements IMusicRepo {
           name: row[1] as String,
           description: row[2] as String,
           avatarUrl: row[3] as String?,
-          createdAt: _parseDate(row[4]),
-          updatedAt: _parseDate(row[5]),
+          followingCount: row[4] as int,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
         );
       }).toList();
 

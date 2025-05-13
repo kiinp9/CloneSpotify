@@ -353,7 +353,7 @@ WHERE id = @id
 
       final authorResult = await _db.executor.execute(
         Sql.named('''
-SELECT a.id, a.name, a.description, a.avatarUrl, a.createdAt, a.updatedAt
+SELECT a.id, a.name, a.description, a.avatarUrl,a.listenCount, a.createdAt, a.updatedAt
 FROM author a
 JOIN album_author ala ON a.id = ala.authorId
 WHERE ala.albumId = @id
@@ -367,8 +367,9 @@ WHERE ala.albumId = @id
           name: row[1] as String,
           description: row[2] as String,
           avatarUrl: row[3] as String?,
-          createdAt: _parseDate(row[4]),
-          updatedAt: _parseDate(row[5]),
+          followingCount: row[4] as int,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
         );
       }).toList();
 

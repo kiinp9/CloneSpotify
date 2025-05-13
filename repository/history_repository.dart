@@ -357,7 +357,7 @@ class HistoryRepository implements IHistoryRepo {
           a.albumTitle AS authorAlbumTitle,
           a.linkUrlImageAlbum AS albumLinkUrlImageAlbum
         FROM history_album hal
-        JOIN album a ON hal.albumId = a.id  -- Kiểm tra lại đây
+        JOIN album a ON hal.albumId = a.id 
         WHERE hal.userId = @userId
         ORDER BY hal.createdAt DESC
         LIMIT @limit OFFSET @offset

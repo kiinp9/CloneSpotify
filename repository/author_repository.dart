@@ -23,7 +23,7 @@ class AuthorRepository implements IAuthorRepo {
     try {
       final authorResult = await _db.executor.execute(
         Sql.named('''
-        SELECT id, name, description, avatarUrl, createdAt, updatedAt 
+        SELECT id, name, description, avatarUrl,followingCount, createdAt, updatedAt 
         FROM author 
         WHERE id = @id
         '''),
@@ -41,8 +41,9 @@ class AuthorRepository implements IAuthorRepo {
         name: authorRow[1] as String,
         description: authorRow[2] as String,
         avatarUrl: authorRow[3] as String?,
-        createdAt: _parseDate(authorRow[4]),
-        updatedAt: _parseDate(authorRow[5]),
+        followingCount: authorRow[4] as int,
+        createdAt: _parseDate(authorRow[5]),
+        updatedAt: _parseDate(authorRow[6]),
       );
       final albumResult = await _db.executor.execute(
         Sql.named('''
@@ -50,8 +51,11 @@ SELECT al.id,
   al.albumTitle,
   al.description,
   al.linkUrlImageAlbum,
+
   al.createdAt,
-  al.updatedAt
+  al.updatedAt,
+    al.nation,
+  al.listenCountAlbum
   FROM album al
   JOIN album_author ala ON al.id = ala.albumId
   WHERE ala.authorId = @id
@@ -66,12 +70,14 @@ SELECT al.id,
           linkUrlImageAlbum: albumRow[3] as String,
           createdAt: _parseDate(albumRow[4]),
           updatedAt: _parseDate(albumRow[5]),
+          nation: albumRow[6] as String? ?? '',
+          listenCountAlbum: albumRow[7] as int,
         );
       }).toList();
       final musicResult = await _db.executor.execute(
         Sql.named('''
         SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, 
-               m.createdAt, m.updatedAt, m.imageUrl
+               m.createdAt, m.updatedAt, m.imageUrl,m.nation, m.listenCount
         FROM music m
         JOIN music_author ma ON m.id = ma.musicId
         WHERE ma.authorId = @id
@@ -89,6 +95,8 @@ SELECT al.id,
           createdAt: _parseDate(musicRow[5]),
           updatedAt: _parseDate(musicRow[6]),
           imageUrl: musicRow[7] as String,
+          nation: musicRow[8] as String? ?? '',
+          listenCount: musicRow[9] as int,
         );
       }).toList();
 
@@ -108,7 +116,7 @@ SELECT al.id,
     try {
       final authorResult = await _db.executor.execute(
         Sql.named('''
- SELECT id, name, description, avatarUrl, createdAt, updatedAt 
+        SELECT id, name, description, avatarUrl,followingCount, createdAt, updatedAt 
         FROM author 
 WHERE LOWER(name) = LOWER(@name)
 '''),
@@ -125,8 +133,9 @@ WHERE LOWER(name) = LOWER(@name)
         name: row[1] as String,
         description: row[2] as String,
         avatarUrl: row[3] as String?,
-        createdAt: _parseDate(row[4]),
-        updatedAt: _parseDate(row[5]),
+        followingCount: row[4] as int,
+        createdAt: _parseDate(row[5]),
+        updatedAt: _parseDate(row[6]),
       );
       final albumResult = await _db.executor.execute(
         Sql.named('''
@@ -134,11 +143,14 @@ SELECT al.id,
   al.albumTitle,
   al.description,
   al.linkUrlImageAlbum,
+
   al.createdAt,
-  al.updatedAt
+  al.updatedAt,
+    al.nation,
+  al.listenCountAlbum
   FROM album al
   JOIN album_author ala ON al.id = ala.albumId
-  WHERE ala.authorId = @authorId
+  WHERE ala.authorId = @id
 '''),
         parameters: {'authorId': author.id},
       );
@@ -150,16 +162,18 @@ SELECT al.id,
           linkUrlImageAlbum: albumRow[3] as String,
           createdAt: _parseDate(albumRow[4]),
           updatedAt: _parseDate(albumRow[5]),
+          nation: albumRow[6] as String? ?? '',
+          listenCountAlbum: albumRow[7] as int,
         );
       }).toList();
 
       final musicResult = await _db.executor.execute(
         Sql.named('''
-SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, 
-               m.createdAt, m.updatedAt, m.imageUrl
-               FROM music m 
-               JOIN music_author ma ON m.id = ma.musicId
-               WHERE ma.authorId = @authorId
+    SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic, 
+               m.createdAt, m.updatedAt, m.imageUrl,m.nation, m.listenCount
+        FROM music m
+        JOIN music_author ma ON m.id = ma.musicId
+        WHERE ma.authorId = @id
 '''),
         parameters: {'authorId': author.id},
       );
@@ -174,6 +188,8 @@ SELECT m.id, m.title, m.description, m.broadcastTime, m.linkUrlMusic,
           createdAt: _parseDate(musicRow[5]),
           updatedAt: _parseDate(musicRow[6]),
           imageUrl: musicRow[7] as String,
+          nation: musicRow[8] as String? ?? '',
+          listenCount: musicRow[9] as int,
         );
       }).toList();
       return author;

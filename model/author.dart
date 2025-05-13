@@ -7,6 +7,7 @@ class Author {
     this.name,
     this.description,
     this.avatarUrl,
+    this.followingCount = 0,
     this.createdAt,
     this.updatedAt,
     this.musics = const [],
@@ -16,6 +17,7 @@ class Author {
   String? name;
   String? description;
   String? avatarUrl;
+  int followingCount;
   DateTime? createdAt;
   DateTime? updatedAt;
   List<Music> musics;
@@ -26,6 +28,7 @@ class Author {
         'name': name,
         'description': description,
         'avatarUrl': avatarUrl,
+        'followingCount': followingCount,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
         'musics': musics.map((m) => m.toJson()).toList(),
@@ -35,7 +38,7 @@ class Author {
   @override
   String toString() {
     return '''
-{id =$id, name= $name, description= $description, avatarUrl= $avatarUrl,createdAt= $createdAt, updatedAt= $updatedAt,musics: ${musics.map((m) => m.title).toList()}, albums : ${albums.map((al) => al.id).toList()}}
+{id =$id, name= $name, description= $description, avatarUrl= $avatarUrl,followingCount = $followingCount,createdAt= $createdAt, updatedAt= $updatedAt,musics: ${musics.map((m) => m.title).toList()}, albums : ${albums.map((al) => al.id).toList()}}
 ''';
   }
 }
