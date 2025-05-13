@@ -116,6 +116,7 @@ class PlaylistRepository implements IPlaylistRepo {
         Sql.named('''
         INSERT INTO playlistItem (playlistId, musicId, createdAt)
         VALUES (@playlistId, @musicId, @createdAt)
+              ON CONFLICT (playlistId, musicId) DO NOTHING
         RETURNING id
       '''),
         parameters: {
