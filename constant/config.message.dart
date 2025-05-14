@@ -91,4 +91,5 @@ class ErrorMessage {
   static const String NOT_FOLLOWING = 'Bạn chưa theo dõi nhạc sĩ/ban nhạc này';
   static const String NOT_FOUND_MUSIC_IN_PLAYLIST =
       'Bài hát không tồn tại trong playlist của người dùng';
+  static const String MISSING_QUERY_PARAM = 'query không được rỗng';
 }

@@ -9,6 +9,7 @@ import '../controllers/history_controller.dart';
 import '../controllers/like_music_controller.dart';
 import '../controllers/music_controller.dart';
 import '../controllers/playlist_controller.dart';
+import '../controllers/search_controller.dart';
 import '../controllers/user_controller.dart';
 import '../database/iredis.dart';
 import '../database/postgres.dart';
@@ -29,6 +30,7 @@ import '../repository/history_repository.dart';
 import '../repository/like_music_repository.dart';
 import '../repository/music_repository.dart';
 import '../repository/playlist_repository.dart';
+import '../repository/search_repository.dart';
 import '../repository/user_repository.dart';
 import '../security/jwt.security.dart';
 
@@ -43,6 +45,7 @@ Handler middleware(Handler handler) {
   final historyRepository = HistoryRepository(database);
   final likeMusicRepository = LikeMusicRepository(database);
   final followAuthorRepository = FollowAuthorRepository(database);
+  final searchRepository = SearchRepository(database);
   final redisService = RedisService();
   final jwtService = JwtService(redisService);
   final uploadMusicService = UploadMusicService();
@@ -57,6 +60,7 @@ Handler middleware(Handler handler) {
   final historyController = HistoryController(historyRepository);
   final likeMusicController = LikeMusicController(likeMusicRepository);
   final followAuthorController = FollowAuthorController(followAuthorRepository);
+  final searchController = SearchController(searchRepository);
   final jwtMiddleware = createJwtMiddleware(jwtService, redisService);
 
   return handler
@@ -74,6 +78,7 @@ Handler middleware(Handler handler) {
       .use(provider<LikeMusicController>((context) => likeMusicController))
       .use(
           provider<FollowAuthorController>((context) => followAuthorController))
+      .use(provider<SearchController>((context) => searchController))
       .use(provider<UploadMusicService>((context) => uploadMusicService))
       .use(provider<UploadAlbumService>((context) => uploadAlbumService))
       .use(loggingMiddleware())
@@ -121,6 +126,9 @@ Middleware injectionController(JwtService jwtService) {
     })).use(provider<FollowAuthorController>((context) {
       final followAuthorRepository = context.read<FollowAuthorRepository>();
       return FollowAuthorController(followAuthorRepository);
+    })).use(provider<SearchController>((context) {
+      final searchRepository = context.read<SearchRepository>();
+      return SearchController(searchRepository);
     })).use(loggingMiddleware());
   };
 }
