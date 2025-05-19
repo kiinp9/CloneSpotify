@@ -196,7 +196,6 @@ Khi gửi Pull Request, đảm bảo:
 
 Nếu bạn có câu hỏi hoặc góp ý, vui lòng liên hệ:
 
-**Viet Cuong**  
 ✉️ Email: vietcuong23122k2@gmail.com  
 🌐 GitHub: [kiinp9](https://github.com/kiinp9)
 
