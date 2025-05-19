@@ -1,3 +1,4 @@
+import 'package:dotenv/dotenv.dart';
 import 'package:redis/redis.dart';
 
 import 'iredis.dart';
@@ -20,11 +21,12 @@ class RedisService implements IRedisService {
       throw Exception("Không thể kết nối Redis: $e");
     }
   }
-
   Future<void> _connect() async {
-    final String redisHost = "localhost";
-    final int redisPort = 6379;
-    final String? redisPassword = "";
+    final env = DotEnv()..load();
+    final String redisHost = env['REDIS_HOST'] ?? 'localhost';
+    final int redisPort = int.tryParse(env['REDIS_PORT'] ?? '') ?? 6379;
+    final String? redisPassword = env['REDIS_PASSWORD'];
+
 
     _connection = RedisConnection();
     _command = await _connection!.connect(redisHost, redisPort);

@@ -1,8 +1,9 @@
 import 'dart:io';
 
 class JwtConfig {
-  static final String secretKey = Platform.environment['JWT_SECRET'] ??
-      'ded485eb5d74090cc81fa158716bb11e56d4844182c39a752f95f6c3f6b1f38d';
-  static const int accessTokenExpiry = 6000000;
-  static const int refreshTokenExpiry = 360000000;
+  static final String secretKey = Platform.environment['JWT_SECRET'] ?? '';
+  static final int accessTokenExpiry =
+      int.tryParse(Platform.environment['ACCESS_TOKEN_EXPIRY'] ?? '') ?? 0;
+  static final int refreshTokenExpiry =
+      int.tryParse(Platform.environment['REFRESH_TOKEN_EXPIRY'] ?? '') ?? 0;
 }

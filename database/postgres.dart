@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:postgres/postgres.dart';
+import 'package:dotenv/dotenv.dart';
 
 class Database {
   Database() {
@@ -10,11 +11,13 @@ class Database {
 
   Future<void> _connect() async {
     try {
-      final String dbHost = 'localhost';
-      final int dbPort = 5432;
-      final String dbName = 'spotify';
-      final String dbUser = 'postgres';
-      final String dbPass = '6901ag';
+      final env = DotEnv()..load();
+
+      final String dbHost = env['DB_HOST'] ?? '';
+      final int dbPort = int.tryParse(env['DB_PORT'] ?? '') ?? 5432;
+      final String dbName = env['DB_NAME'] ?? '';
+      final String dbUser = env['DB_USER'] ?? '';
+      final String dbPass = env['DB_PASSWORD'] ?? '';
 
       executor = await Connection.open(
         Endpoint(

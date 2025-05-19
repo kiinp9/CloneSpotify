@@ -10,9 +10,9 @@ class EmailService {
   EmailService() {
     final env = DotEnv()..load();
 
-    sourceEmail = env['SOURCE_EMAIL'] ?? 'vietcuong23122002@gmail.com';
-    final username = env['GMAIL_USER'] ?? 'vietcuong23122002@gmail.com';
-    final password = env['GMAIL_PASSWORD'] ?? 'kewl azoq wqkt qgry';
+    sourceEmail = env['SOURCE_EMAIL'] ?? '';
+    final username = env['GMAIL_USER'] ?? '';
+    final password = env['GMAIL_PASSWORD'] ?? '';
 
     smtpServer = SmtpServer(
       'smtp.gmail.com',

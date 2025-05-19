@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dotenv/dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -10,9 +11,11 @@ abstract class IUploadMusicService {
 }
 
 class UploadMusicService implements IUploadMusicService {
-  final String cloudName = "di6hah0gf";
-  final String apiKey = "374432928571719";
-  final String uploadPreset = "spotifyclone";
+  final env = DotEnv()..load();
+  late final String cloudName = env['CLOUDINARY_CLOUD_NAME'] ?? '';
+  late final String apiKey = env['CLOUDINARY_API_KEY'] ?? '';
+  late final String uploadPreset = env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
+
 
   String _getFolderByFileType(String filePath) {
     final extension = filePath.split('.').last.toLowerCase();
