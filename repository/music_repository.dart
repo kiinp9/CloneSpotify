@@ -451,7 +451,7 @@ class MusicRepository implements IMusicRepo {
       );
     }
   }
-
+ @override
   Future<Music?> nextMusic(int currentMusicId) async {
     try {
       final authorResult = await _db.executor.execute(
@@ -536,7 +536,7 @@ class MusicRepository implements IMusicRepo {
 
       final categoryResult = await _db.executor.execute(
         Sql.named('''
-        SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt
+        SELECT c.id, c.name, c.description, c.createdAt, c.updatedAt,c.imageUrl
         FROM category c
         JOIN music_category mc ON c.id = mc.categoryId
         WHERE mc.musicId = @musicId
@@ -551,6 +551,7 @@ class MusicRepository implements IMusicRepo {
           description: row[2] as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
+          imageUrl:row[5] as String,
         );
       }).toList();
 

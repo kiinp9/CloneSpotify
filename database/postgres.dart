@@ -16,7 +16,7 @@ class Database {
       final String dbHost = env['DB_HOST'] ?? '';
       final int dbPort = int.tryParse(env['DB_PORT'] ?? '') ?? 5432;
       final String dbName = env['DB_NAME'] ?? '';
-      final String dbUser = env['DB_USER'] ?? '';
+      final String dbUser = env['DB_USERNAME'] ?? '';
       final String dbPass = env['DB_PASSWORD'] ?? '';
 
       executor = await Connection.open(

@@ -29,7 +29,7 @@ Future<Response> onRequest(RequestContext context) async {
     ),
     fullName: body['fullName'].toString(),
     userName: body['userName'].toString(),
-    roleId: 2,
+    roleId: 1,
     GoogleStatus: 1,
   );
 
