@@ -1,8 +1,8 @@
-// lib/interfaces/playlist/image_generator_interface.dart
+
 
 import '../../../model/music.dart';
 
-/// Interface cho service tạo ảnh playlist
+
 abstract class IPlaylistImageGenerator {
   /// Tạo và tải lên ảnh bìa playlist dựa trên danh sách bài hát
   ///

@@ -4,8 +4,9 @@ import 'package:logging/logging.dart';
 class AppLogger {
   static final Logger _logger = Logger('Dart');
 
-  static const String green = '\x1B[32m'; // 🟢 Màu xanh lá cây
-  static const String reset = '\x1B[0m'; // 🔄 Reset màu về mặc định
+  static const String green = '\x1B[32m'; // Màu xanh lá cây
+  static const String yellow = '\x1B[33m'; // Màu vàng
+  static const String reset = '\x1B[0m';   // Reset màu
 
   static void init() {
     Logger.root.level = Level.ALL;
@@ -31,18 +32,18 @@ class AppLogger {
   static void logRequest(
       String method, String path, Map<String, dynamic> headers, String body) {
     logSeparator();
-    logInfo("[Request $method $path]");
+    _logger.info("$yellow[Request $method $path]$reset");
     logInfo("Headers: ${jsonEncode(headers)}");
     logInfo("Body: ${jsonEncode(jsonDecode(body))}");
   }
 
   static void logResponse(String method, String path, int statusCode,
       dynamic response, Map<String, String> headers) {
-    logInfo("[Response $method $path] ${jsonEncode({
+    _logger.info("$yellow[Response $method $path]${jsonEncode({
           'statusCode': statusCode,
           'body': response,
           'headers': headers
-        })}");
+        })}$reset");
     logSeparator();
   }
 

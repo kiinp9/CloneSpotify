@@ -1,4 +1,4 @@
-// lib/services/playlist/playlist_image_generator_service.dart
+
 
 import 'dart:io';
 import 'dart:typed_data';
@@ -12,13 +12,13 @@ import '../../file/interface/file.interface.dart';
 
 import '../interface/generate_image_playlist_interface.dart';
 
-/// Service chịu trách nhiệm tạo ảnh đại diện cho playlist
+
 class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
   final IFileService _fileService;
 
   static const int _requiredImagesCount = 4;
   static const int _imageSize = 300;
-  static const int _gridItemSize = 150; // Một nửa kích thước ảnh cuối cùng
+  static const int _gridItemSize = 150; 
 
   PlaylistImageGeneratorService({
     required IFileService fileService,
