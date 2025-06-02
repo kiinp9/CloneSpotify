@@ -21,7 +21,7 @@ Future<Response> onRequest(RequestContext context) async {
     return AppResponse().error(HttpStatus.forbidden, ErrorMessage.FORBIDDEN);
   }
   final body = await context.request.json();
-  final avatarPath = body['avatarPath']?.toString();
+  final avatarPath = body['avatarUrl']?.toString();
   if (avatarPath == null) {
     return AppResponse()
         .error(HttpStatus.badRequest, ErrorMessage.INVALID_AVATAR_AUTHOR);
