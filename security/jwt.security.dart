@@ -23,13 +23,13 @@ class JwtService {
         'roleId': user.roleId,
         'roleName': user.role?.name,
         'tokenVersion': tokenVersion,
-        'exp': DateTime.now()
-                .add(Duration(seconds: JwtConfig.accessTokenExpiry))
-                .millisecondsSinceEpoch ~/
-            1000,
       },
     );
-    return jwt.sign(SecretKey(JwtConfig.secretKey));
+
+    return jwt.sign(
+      SecretKey(JwtConfig.secretKey),
+      expiresIn: Duration(seconds: JwtConfig.accessTokenExpiry),
+    );
   }
 
   Map<String, dynamic>? decodeToken(String token) {
@@ -40,7 +40,7 @@ class JwtService {
         'email': jwt.payload['email'],
         'roleId': jwt.payload['roleId'],
         'roleName': jwt.payload['roleName'],
-        'tokenVersion': jwt.payload['tokenVersion'], // Giữ tokenVersion
+        'tokenVersion': jwt.payload['tokenVersion'],
         'exp': jwt.payload['exp'],
       };
     } catch (e) {

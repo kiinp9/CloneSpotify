@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:dart_frog/dart_frog.dart';
 import 'package:dotenv/dotenv.dart';
 
+import 'config/jwt.config.dart';
 import 'database/postgres.dart';
 import 'database/redis.dart';
 import 'libs/sendmail/service/sendmail.dart';
@@ -13,7 +14,13 @@ final redisService = RedisService();
 final otpService = OtpService(redisService);
 final emailService = EmailService();
 
+void initConfigs() {
+  JwtConfig.init(dotenv);
+}
+
 Future<HttpServer> run(Handler handler, InternetAddress ip, int port) async {
+  initConfigs();
+
   return serve(
     handler
         .use(setupMiddleware(database, redisService, otpService, emailService)),
