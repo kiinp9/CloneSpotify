@@ -1,0 +1,51 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:dotenv/dotenv.dart';
+import 'package:http/http.dart' as http;
+
+import '../../../constant/config.message.dart';
+import '../../../exception/config.exception.dart';
+
+abstract class IUploadAvatarAuthorService {
+  Future<String?> uploadAvatarAuthor(String avatarPath);
+
+  Future<String?> uploadFile(String filePath, String folder);
+}
+
+class UploadAvatarAuthorService extends IUploadAvatarAuthorService {
+  final env = DotEnv()..load();
+  late final String cloudName = env['CLOUDINARY_CLOUD_NAME'] ?? '';
+  late final String apiKey = env['CLOUDINARY_API_KEY'] ?? '';
+  late final String uploadPreset = env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
+  @override
+  Future<String?> uploadAvatarAuthor(String avatarPath) async {
+    final url = await uploadFile(avatarPath, "avatarAuthor");
+    return url;
+  }
+
+  @override
+  Future<String?> uploadFile(String filePath, String folder) async {
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      throw const CustomHttpException(
+          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest);
+    }
+    final url = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/upload");
+    final request = await http.MultipartRequest("POST", url)
+      ..fields["upload_preset"] = uploadPreset
+      ..fields["folder"] = folder
+      ..fields["api_key"] = apiKey
+      ..files.add(await http.MultipartFile.fromPath("file", file.path));
+    final response = await request.send();
+    final responseBody = await response.stream.bytesToString();
+    final data = jsonDecode(responseBody);
+    if (response.statusCode == 200) {
+      return data["secure_url"] as String?;
+    } else {
+      throw const CustomHttpException(
+          ErrorMessage.UPLOAD_FAIL, HttpStatus.badRequest);
+    }
+  }
+}
+//

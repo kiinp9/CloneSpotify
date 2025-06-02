@@ -5,7 +5,7 @@ import 'package:postgres/postgres.dart';
 import '../constant/config.message.dart';
 import '../database/postgres.dart';
 import '../exception/config.exception.dart';
-import '../libs/cloudinary/service/uload-imageCategory.service.dart';
+import '../libs/cloudinary/service/upload-imageCategory.service.dart';
 import '../model/category.dart';
 
 abstract class ICategoryRepo {

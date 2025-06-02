@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:postgres/postgres.dart';
 
 import '../database/postgres.dart';
+import '../libs/cloudinary/service/upload-avatarAuthor.dart';
 import '../model/album.dart';
 import '../model/author.dart';
 import '../model/music.dart';
@@ -12,12 +13,15 @@ abstract class IAuthorRepo {
   Future<Author?> findAuthorById(int id);
   Future<Author?> findAuthorByName(String name);
   Future<List<Author>> showAuthorPaging({int offset = 0, int limit = 8});
+  Future<int?> createAuthor(Author author, String avatarPath);
 }
 
 class AuthorRepository implements IAuthorRepo {
-  AuthorRepository(this._db);
+  AuthorRepository(this._db)
+      : _uploadAvatarAuthorService = UploadAvatarAuthorService();
   final Database _db;
-
+  final UploadAvatarAuthorService _uploadAvatarAuthorService;
+  final now = DateTime.now().toIso8601String();
   @override
   Future<Author?> findAuthorById(int id) async {
     try {
@@ -232,6 +236,45 @@ OFFSET @offset
         authors.add(author);
       }
       return authors;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<int?> createAuthor(Author author, String avatarPath) async {
+    try {
+      String? avatarUrl =
+          await _uploadAvatarAuthorService.uploadAvatarAuthor(avatarPath);
+      final result = await _db.executor.execute(
+        Sql.named('''
+        INSERT INTO author (name, description, avatarUrl, followingCount, createdAt, updatedAt)
+        VALUES (@name, @description, @avatarUrl, @followingCount, @createdAt, @updatedAt)
+        RETURNING id
+      '''),
+        parameters: {
+          'name': author.name,
+          'description': author.description,
+          'avatarUrl': avatarUrl,
+          'followingCount': author.followingCount,
+          'createdAt': now,
+          'updatedAt': now,
+        },
+      );
+      if (result.isEmpty || result.first.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessageSQL.SQL_QUERY_ERROR,
+          HttpStatus.internalServerError,
+        );
+      }
+      final authorId = result.first[0] as int;
+      return authorId;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;

@@ -92,4 +92,6 @@ class ErrorMessage {
   static const String NOT_FOUND_MUSIC_IN_PLAYLIST =
       'Bài hát không tồn tại trong playlist của người dùng';
   static const String MISSING_QUERY_PARAM = 'query không được rỗng';
+  static const String INVALID_AVATAR_AUTHOR =
+      'Ảnh đại diện tác giả không hợp lệ';
 }
