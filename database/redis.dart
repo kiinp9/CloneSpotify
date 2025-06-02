@@ -21,12 +21,12 @@ class RedisService implements IRedisService {
       throw Exception("Không thể kết nối Redis: $e");
     }
   }
+
   Future<void> _connect() async {
     final env = DotEnv()..load();
     final String redisHost = env['REDIS_HOST'] ?? 'localhost';
     final int redisPort = int.tryParse(env['REDIS_PORT'] ?? '') ?? 6379;
     final String? redisPassword = env['REDIS_PASSWORD'];
-
 
     _connection = RedisConnection();
     _command = await _connection!.connect(redisHost, redisPort);

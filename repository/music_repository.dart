@@ -451,7 +451,8 @@ class MusicRepository implements IMusicRepo {
       );
     }
   }
- @override
+
+  @override
   Future<Music?> nextMusic(int currentMusicId) async {
     try {
       final authorResult = await _db.executor.execute(
@@ -551,7 +552,7 @@ class MusicRepository implements IMusicRepo {
           description: row[2] as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
-          imageUrl:row[5] as String,
+          imageUrl: row[5] as String,
         );
       }).toList();
 

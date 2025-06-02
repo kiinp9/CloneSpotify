@@ -42,10 +42,12 @@ services:
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: spotify
-      DB_USER: postgres
+      DB_USERNAME: postgres
       DB_PASSWORD: 6901ag
       REDIS_HOST: redis
       REDIS_PORT: 6379
+    volumes:
+      - ./.env:/app/.env     # <-- Gắn mount file .env đúng vị trí trong service
     command: ["/app/build/bin/server"]
     networks:
       - my_network
