@@ -8,11 +8,9 @@ import '../validate/password.dart';
 import '../repository/user_repository.dart';
 import '../exception/config.exception.dart';
 import '../validate/strings.dart';
-import '../security/jwt.security.dart';
 
 class UserController {
-  UserController(this._userRepository, this._jwtService);
-  final JwtService _jwtService;
+  UserController(this._userRepository);
   final UserRepository _userRepository;
   Future<User> Login(String? identifier, String password) async {
     try {
@@ -89,13 +87,8 @@ class UserController {
       user.password = genPassword(user.password!);
       final result = await _userRepository.saveUser(user);
       if (result > 0) {
-        if (user.email == null) {
-          throw const CustomHttpException(
-              ErrorMessage.EMAIL_REQUIRED, HttpStatus.badRequest);
-        }
         final userDb = await _userRepository.findUserByEmail(user.email!);
 
-        final token = _jwtService.generateTokenJwt(userDb!);
         completer.complete(userDb);
       }
     } catch (e) {

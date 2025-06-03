@@ -50,7 +50,7 @@ Handler middleware(Handler handler) {
   final jwtService = JwtService(redisService);
   final uploadMusicService = UploadMusicService();
   final uploadAlbumService = UploadAlbumService();
-  final userController = UserController(userRepository, jwtService);
+  final userController = UserController(userRepository);
   final musicController = MusicController(musicRepository, redisService);
   final authorController = AuthorController(authorRepository);
   final albumController = AlbumController(albumRepository);
@@ -98,7 +98,7 @@ Middleware injectionController(JwtService jwtService) {
       return UserRepository(db);
     })).use(provider<UserController>((context) {
       final userRepository = context.read<UserRepository>();
-      return UserController(userRepository, jwtService);
+      return UserController(userRepository);
     })).use(provider<MusicRepository>((context) {
       final db = context.read<Database>();
       return MusicRepository(db);
