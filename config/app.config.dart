@@ -27,6 +27,6 @@ class AppConfig {
   // Load trước khi chạy ứng dụng
   static void init() {
     print(
-        "🔹 AppConfig Loaded: NODE_ENV = $nodeEnv, DB = $dbHost:$dbPort/$dbName");
+        '🔹 AppConfig Loaded: NODE_ENV = $nodeEnv, DB = $dbHost:$dbPort/$dbName',);
   }
 }

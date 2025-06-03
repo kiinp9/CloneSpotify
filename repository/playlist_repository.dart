@@ -1,8 +1,10 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
+
 import 'package:postgres/postgres.dart';
 
 import '../constant/config.message.dart';
+import '../database/postgres.dart';
 import '../exception/config.exception.dart';
 import '../libs/cloudinary/service/upload-imagePlaylist.service.dart';
 import '../libs/file/service/file.service.dart';
@@ -11,18 +13,17 @@ import '../libs/generate_image/service/generate_image_playlist.dart';
 import '../model/author.dart';
 import '../model/music.dart';
 import '../model/playlist.dart';
-import '../database/postgres.dart';
 
 abstract class IPlaylistRepo {
   Future<int?> createPlaylist(Playlist playlist);
   Future<Playlist> addMusicToPlaylist(int playlistId, int musicId);
   Future<Playlist> deleteMusicFromPlaylist(
-      int userId, int playlistId, int musicId);
+      int userId, int playlistId, int musicId,);
   Future<List<Map<String, dynamic>>> getMusicByPlaylistId(
-      int userId, int playlistId);
+      int userId, int playlistId,);
   Future<List<Playlist>> getPlaylistByUserId(int userId);
   Future<Playlist> updatePlaylist(
-      int userId, int playlistId, Map<String, dynamic> updateFields);
+      int userId, int playlistId, Map<String, dynamic> updateFields,);
   Future<Playlist> deletePlaylist(int userId, int playlistId);
   Future<Music> playMusicInPlayList(int userId, int playlistId, int musicId);
   Future<Music?> nextMusic(int currentMusicId, int userId, int playlistId);
@@ -30,15 +31,15 @@ abstract class IPlaylistRepo {
 }
 
 class PlaylistRepository implements IPlaylistRepo {
-  final Database _db;
-  final IPlaylistImageGenerator _playlistImageGenerator;
-  final IUploadImagePlaylistService _imagePlaylistUploader;
 
   PlaylistRepository(this._db)
       : _playlistImageGenerator = PlaylistImageGeneratorService(
           fileService: FileService(),
         ),
         _imagePlaylistUploader = UploadImagePlaylistService();
+  final Database _db;
+  final IPlaylistImageGenerator _playlistImageGenerator;
+  final IUploadImagePlaylistService _imagePlaylistUploader;
 
   @override
   Future<int?> createPlaylist(Playlist playlist) async {
@@ -81,12 +82,12 @@ class PlaylistRepository implements IPlaylistRepo {
         );
       }
 
-      final playlistId = playlistResult.first[0] as int;
+      final playlistId = playlistResult.first[0]! as int;
       return playlistId;
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -152,15 +153,15 @@ class PlaylistRepository implements IPlaylistRepo {
 
       final musicList = musicListResult.map((row) {
         return Music(
-          id: row[0] as int,
-          title: row[1] as String,
-          description: row[2] as String,
-          broadcastTime: row[3] as int,
-          linkUrlMusic: row[4] as String,
+          id: row[0]! as int,
+          title: row[1]! as String,
+          description: row[2]! as String,
+          broadcastTime: row[3]! as int,
+          linkUrlMusic: row[4]! as String,
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
-          imageUrl: row[7] as String,
-          listenCount: row[8] as int,
+          imageUrl: row[7]! as String,
+          listenCount: row[8]! as int,
           nation: row[9] as String? ?? '',
         );
       }).toList();
@@ -210,11 +211,11 @@ class PlaylistRepository implements IPlaylistRepo {
 
       final row = playlistResult.first;
       return Playlist(
-        id: row[0] as int,
-        userId: row[1] as int,
-        name: row[2] as String,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        name: row[2]! as String,
         description: row[3] as String?,
-        isPublic: row[4] as bool,
+        isPublic: row[4]! as bool,
         imageUrl: row[5] as String?,
         createdAt: _parseDate(row[6]),
         updatedAt: _parseDate(row[7]),
@@ -222,7 +223,7 @@ class PlaylistRepository implements IPlaylistRepo {
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -231,7 +232,7 @@ class PlaylistRepository implements IPlaylistRepo {
 
   @override
   Future<Playlist> deleteMusicFromPlaylist(
-      int userId, int playlistId, int musicId) async {
+      int userId, int playlistId, int musicId,) async {
     try {
       final now = DateTime.now();
       final playlistCheck = await _db.executor.execute(
@@ -300,15 +301,15 @@ class PlaylistRepository implements IPlaylistRepo {
 
       final musicList = musicListResult.map((row) {
         return Music(
-          id: row[0] as int,
-          title: row[1] as String,
-          description: row[2] as String,
-          broadcastTime: row[3] as int,
-          linkUrlMusic: row[4] as String,
+          id: row[0]! as int,
+          title: row[1]! as String,
+          description: row[2]! as String,
+          broadcastTime: row[3]! as int,
+          linkUrlMusic: row[4]! as String,
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
-          imageUrl: row[7] as String,
-          listenCount: row[8] as int,
+          imageUrl: row[7]! as String,
+          listenCount: row[8]! as int,
           nation: row[9] as String? ?? '',
         );
       }).toList();
@@ -358,11 +359,11 @@ class PlaylistRepository implements IPlaylistRepo {
 
       final row = playlistResult.first;
       return Playlist(
-        id: row[0] as int,
-        userId: row[1] as int,
-        name: row[2] as String,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        name: row[2]! as String,
         description: row[3] as String?,
-        isPublic: row[4] as bool,
+        isPublic: row[4]! as bool,
         imageUrl: row[5] as String?,
         createdAt: _parseDate(row[6]),
         updatedAt: _parseDate(row[7]),
@@ -370,7 +371,7 @@ class PlaylistRepository implements IPlaylistRepo {
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -429,18 +430,18 @@ class PlaylistRepository implements IPlaylistRepo {
       );
 
       if (result.isEmpty) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
           ErrorMessage.PLAYLIST_IS_EMPTY,
           HttpStatus.ok,
         );
       }
 
-      final Map<int, Map<String, dynamic>> grouped = {};
-      for (var row in result) {
-        final musicId = row[0] as int;
-        final title = row[1] as String;
-        final imageUrl = row[2] as String;
-        final authorName = row[3] as String;
+      final grouped = <int, Map<String, dynamic>>{};
+      for (final row in result) {
+        final musicId = row[0]! as int;
+        final title = row[1]! as String;
+        final imageUrl = row[2]! as String;
+        final authorName = row[3]! as String;
 
         grouped.putIfAbsent(
           musicId,
@@ -459,12 +460,12 @@ class PlaylistRepository implements IPlaylistRepo {
                 'id': entry['musicId'],
                 'title': entry['title'],
                 'imageUrl': entry['imageUrl'],
-                'authors': (entry['authors'] as List<String>).join(', ')
-              })
+                'authors': (entry['authors'] as List<String>).join(', '),
+              },)
           .toList();
     } catch (e) {
       if (e is CustomHttpException) rethrow;
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -483,7 +484,7 @@ class PlaylistRepository implements IPlaylistRepo {
       );
 
       if (user.isEmpty) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
           ErrorMessage.USER_NOT_FOUND,
           HttpStatus.notFound,
         );
@@ -507,11 +508,11 @@ class PlaylistRepository implements IPlaylistRepo {
 
       final playlists = result.map((row) {
         return Playlist(
-          id: row[0] as int,
-          userId: row[1] as int,
-          name: row[2] as String,
+          id: row[0]! as int,
+          userId: row[1]! as int,
+          name: row[2]! as String,
           description: row[3] as String?,
-          isPublic: row[4] as bool,
+          isPublic: row[4]! as bool,
           imageUrl: row[5] as String?,
           createdAt: row[6] as DateTime?,
           updatedAt: row[7] as DateTime?,
@@ -522,15 +523,16 @@ class PlaylistRepository implements IPlaylistRepo {
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Playlist> updatePlaylist(
-      int userId, int playlistId, Map<String, dynamic> updateFields) async {
+      int userId, int playlistId, Map<String, dynamic> updateFields,) async {
     try {
       final playlistCheck = await _db.executor.execute(
         Sql.named('''
@@ -602,24 +604,25 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
       final row = result.first;
 
       return Playlist(
-        id: row[0] as int,
-        userId: row[1] as int,
-        name: row[2] as String,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        name: row[2]! as String,
         description: row[3] as String?,
-        isPublic: row[4] as bool,
+        isPublic: row[4]! as bool,
         imageUrl: row[5] as String?,
         createdAt: row[6] as DateTime?,
         updatedAt: row[7] as DateTime?,
       );
     } catch (e) {
       if (e is CustomHttpException) rethrow;
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Playlist> deletePlaylist(int userId, int playlistId) async {
     try {
       final playlistCheck = await _db.executor.execute(
@@ -653,11 +656,11 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
 
       final row = playlistCheck.first;
       final deletedPlaylist = Playlist(
-        id: row[0] as int,
-        userId: row[1] as int,
-        name: row[2] as String,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        name: row[2]! as String,
         description: row[3] as String?,
-        isPublic: row[4] as bool,
+        isPublic: row[4]! as bool,
         imageUrl: row[5] as String?,
         createdAt: row[6] as DateTime?,
         updatedAt: row[7] as DateTime?,
@@ -676,13 +679,14 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
       return deletedPlaylist;
     } catch (e) {
       if (e is CustomHttpException) rethrow;
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Music> playMusicInPlayList(
     int userId,
     int playlistId,
@@ -712,7 +716,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
     '''), parameters: {
         'musicId': musicId,
         'userId': userId,
-      });
+      },);
 
       if (playlistItemResult.isEmpty) {
         throw const CustomHttpException(
@@ -728,7 +732,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
       WHERE id = @musicId
     '''), parameters: {
         'musicId': musicId,
-      });
+      },);
 
       if (musicResult.isEmpty) {
         throw const CustomHttpException(
@@ -739,8 +743,8 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
 
       final row = musicResult.first;
       final music = Music(
-        id: row[0] as int,
-        title: row[1] as String,
+        id: row[0]! as int,
+        title: row[1]! as String,
         description: row[2] as String?,
         broadcastTime: row[3] as int?,
         linkUrlMusic: row[4] as String?,
@@ -748,7 +752,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
         updatedAt: _parseDate(row[6]),
         imageUrl: row[7] as String?,
         albumId: row[8] as int?,
-        listenCount: row[9] as int,
+        listenCount: row[9]! as int,
         nation: row[10] as String? ?? '',
       );
 
@@ -765,11 +769,11 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
 
       music.authors = author.map((row) {
         return Author(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           avatarUrl: row[3] as String?,
-          followingCount: row[4] as int,
+          followingCount: row[4]! as int,
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
         );
@@ -779,7 +783,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -788,17 +792,17 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
 
   @override
   Future<Music?> nextMusic(
-      int currentMusicId, int userId, int playlistId) async {
+      int currentMusicId, int userId, int playlistId,) async {
     try {
       final checkPlaylist = await _db.executor.execute(
         Sql.named(
-            '''SELECT * FROM playlist WHERE userId = @userId AND id= @playlistId'''),
+            '''SELECT * FROM playlist WHERE userId = @userId AND id= @playlistId''',),
         parameters: {'userId': userId, 'playlistId': playlistId},
       );
 
       if (checkPlaylist.isEmpty) {
         throw const CustomHttpException(
-            ErrorMessage.PLAYLIST_NOT_FOUND, HttpStatus.notFound);
+            ErrorMessage.PLAYLIST_NOT_FOUND, HttpStatus.notFound,);
       }
 
       final currentItemResult = await _db.executor.execute(Sql.named('''
@@ -809,7 +813,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
         'currentMusicId': currentMusicId,
         'playlistId': playlistId,
         'userId': userId,
-      });
+      },);
 
       if (currentItemResult.isEmpty) {
         throw const CustomHttpException(
@@ -818,7 +822,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
         );
       }
 
-      final currentPlaylistItemId = currentItemResult.first[0] as int;
+      final currentPlaylistItemId = currentItemResult.first[0]! as int;
 
       final nextItemResult = await _db.executor.execute(Sql.named('''
       SELECT musicId FROM playlistItem
@@ -828,13 +832,13 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
     '''), parameters: {
         'playlistId': playlistId,
         'currentItemId': currentPlaylistItemId,
-      });
+      },);
 
       if (nextItemResult.isEmpty) {
         return null;
       }
 
-      final nextMusicId = nextItemResult.first[0] as int;
+      final nextMusicId = nextItemResult.first[0]! as int;
 
       final musicResult = await _db.executor.execute(Sql.named('''
       SELECT id, title, description, broadcastTime, linkUrlMusic, createdAt, updatedAt, imageUrl, albumId, listenCount, nation
@@ -842,7 +846,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
       WHERE id = @musicId
     '''), parameters: {
         'musicId': nextMusicId,
-      });
+      },);
 
       if (musicResult.isEmpty) {
         return null;
@@ -850,7 +854,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
 
       final row = musicResult.first;
       final music = Music(
-        id: row[0] as int,
+        id: row[0]! as int,
         title: row[1] as String?,
         description: row[2] as String?,
         broadcastTime: row[3] as int?,
@@ -859,7 +863,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
         updatedAt: _parseDate(row[6]),
         imageUrl: row[7] as String?,
         albumId: row[8] as int?,
-        listenCount: row[9] as int,
+        listenCount: row[9]! as int,
         nation: row[10] as String?,
       );
 
@@ -875,11 +879,11 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
 
       music.authors = author.map((row) {
         return Author(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           avatarUrl: row[3] as String?,
-          followingCount: row[4] as int,
+          followingCount: row[4]! as int,
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
         );
@@ -890,7 +894,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -934,7 +938,7 @@ RETURNING id, userId, name, description, isPublic, imageUrl, createdAt, updatedA
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

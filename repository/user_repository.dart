@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+
 import 'package:postgres/postgres.dart';
+
+import '../constant/config.constant.dart';
+import '../constant/config.message.dart';
 import '../database/postgres.dart';
+import '../exception/config.exception.dart';
 import '../model/roles.dart';
 import '../model/users.dart';
-import '../constant/config.message.dart';
-import '../exception/config.exception.dart';
-import '../constant/config.constant.dart';
 
 abstract class IUserRepo {
   Future<int> saveUser(User user);
@@ -27,7 +29,7 @@ class UserRepository implements IUserRepo {
     final existingUser = await findUserByEmail(user.email);
     if (existingUser != null) {
       throw const CustomHttpException(
-          ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest);
+          ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest,);
     }
 
     final result = await _db.executor.execute(
@@ -55,13 +57,13 @@ class UserRepository implements IUserRepo {
 
     if (result.isEmpty || result.first.isEmpty) {
       throw const CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError,);
     }
 
     final insertedId = result.first[0];
     if (insertedId == null) {
       throw const CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError,);
     }
 
     return insertedId as int;
@@ -91,7 +93,7 @@ class UserRepository implements IUserRepo {
         : GenderE.preferNotToSay;
 
     return User(
-      id: row[0] as int,
+      id: row[0]! as int,
       fullName: _decode(row[1]),
       userName: _decode(row[2]),
       email: _decode(row[3]),
@@ -102,10 +104,10 @@ class UserRepository implements IUserRepo {
       roleId: row[8] as int?,
       createdAt: row[9] != null ? DateTime.tryParse(row[9].toString()) : null,
       updatedAt: row[10] != null ? DateTime.tryParse(row[10].toString()) : null,
-      GoogleStatus: row[11] as int,
+      GoogleStatus: row[11]! as int,
       role: row[12] != null
           ? Role(
-              id: row[12] as int,
+              id: row[12]! as int,
               name: _decode(row[13]),
               description: _decode(row[14]),
               createdAt: row[15] != null
@@ -143,7 +145,7 @@ class UserRepository implements IUserRepo {
         : GenderE.preferNotToSay;
 
     return User(
-      id: row[0] as int,
+      id: row[0]! as int,
       fullName: _decode(row[1]),
       userName: _decode(row[2]),
       email: _decode(row[3]),
@@ -154,10 +156,10 @@ class UserRepository implements IUserRepo {
       roleId: row[8] as int?,
       createdAt: row[9] != null ? DateTime.tryParse(row[9].toString()) : null,
       updatedAt: row[10] != null ? DateTime.tryParse(row[10].toString()) : null,
-      GoogleStatus: row[11] as int,
+      GoogleStatus: row[11]! as int,
       role: row[12] != null
           ? Role(
-              id: row[12] as int,
+              id: row[12]! as int,
               name: _decode(row[13]),
               description: _decode(row[14]),
               createdAt: row[15] != null
@@ -171,8 +173,9 @@ class UserRepository implements IUserRepo {
     );
   }
 
+  @override
   Future<User?> findUserByUserName(String userName,
-      {bool showPass = false}) async {
+      {bool showPass = false,}) async {
     final result = await _db.executor.execute(
       Sql.named('''
       SELECT * FROM users u
@@ -191,7 +194,7 @@ class UserRepository implements IUserRepo {
         : GenderE.preferNotToSay;
 
     return User(
-      id: row[0] as int,
+      id: row[0]! as int,
       fullName: _decode(row[1]),
       userName: _decode(row[2]),
       email: _decode(row[3]),
@@ -202,10 +205,10 @@ class UserRepository implements IUserRepo {
       roleId: row[8] as int?,
       createdAt: row[9] != null ? DateTime.tryParse(row[9].toString()) : null,
       updatedAt: row[10] != null ? DateTime.tryParse(row[10].toString()) : null,
-      GoogleStatus: row[11] as int,
+      GoogleStatus: row[11]! as int,
       role: row[12] != null
           ? Role(
-              id: row[12] as int,
+              id: row[12]! as int,
               name: _decode(row[13]),
               description: _decode(row[14]),
               createdAt: row[15] != null
@@ -219,6 +222,7 @@ class UserRepository implements IUserRepo {
     );
   }
 
+  @override
   Future<User?> updateUser(User user, {bool showPass = false}) async {
     final result = await _db.executor.execute(
       Sql.named('''
@@ -231,7 +235,7 @@ RETURNING id, fullName, userName, email, password, gender, birthday, status, rol
         'id': user.id,
         'fullName': user.fullName,
         'gender': user.gender.name,
-        'birthday': user.birthday
+        'birthday': user.birthday,
       },
     );
 
@@ -250,7 +254,7 @@ WHERE id = @roleId
 
     final role = roleResult.isNotEmpty
         ? Role(
-            id: roleResult.first[0] as int,
+            id: roleResult.first[0]! as int,
             name: _decode(roleResult.first[1]),
             description: _decode(roleResult.first[2]),
             createdAt: roleResult.first[3] != null
@@ -267,7 +271,7 @@ WHERE id = @roleId
         : GenderE.preferNotToSay;
 
     return User(
-      id: row[0] as int,
+      id: row[0]! as int,
       fullName: _decode(row[1]),
       userName: _decode(row[2]),
       email: _decode(row[3]),
@@ -284,13 +288,13 @@ WHERE id = @roleId
       updatedAt: row.length > 10 && row[10] != null
           ? DateTime.parse(row[10].toString())
           : null,
-      GoogleStatus: row[11] as int,
+      GoogleStatus: row[11]! as int,
       role: role,
     );
   }
 
   Future<User?> updatePassword(int id, String newPassword,
-      {bool showPass = false}) async {
+      {bool showPass = false,}) async {
     final result = await _db.executor.execute(
       Sql.named('''
       UPDATE users 
@@ -316,7 +320,7 @@ WHERE id = @roleId
     if (roleResult.isEmpty) return null;
 
     final role = Role(
-      id: roleResult.first[0] as int,
+      id: roleResult.first[0]! as int,
       name: _decode(roleResult.first[1]),
       description: _decode(roleResult.first[2]),
       createdAt: roleResult.first[3] != null
@@ -332,7 +336,7 @@ WHERE id = @roleId
         : GenderE.preferNotToSay;
 
     return User(
-      id: row[0] as int,
+      id: row[0]! as int,
       fullName: _decode(row[1]),
       userName: _decode(row[2]),
       email: _decode(row[3]),
@@ -349,7 +353,7 @@ WHERE id = @roleId
       updatedAt: row.length > 10 && row[10] != null
           ? DateTime.parse(row[10].toString())
           : null,
-      GoogleStatus: row[11] as int,
+      GoogleStatus: row[11]! as int,
       role: role,
     );
   }

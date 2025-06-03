@@ -36,12 +36,12 @@ Future<Response> onRequest(RequestContext context, String id) async {
     await musicController.playNextMusic(user.id!, result.id.toString());
     await musicController.incrementListenCount(result.id!);
     await historyController.addMusicToHistory(user.id!, result.id!);
-    final authors = (result?.authors ?? []);
+    final authors = result.authors ?? [];
     for (final author in authors) {
       await historyController.addAuthorToHistoryAuthor(user.id!, author.id!);
     }
     await historyController.createHistoryAlbum(
-        user.id!, result?.albumId, result.id!);
+        user.id!, result.albumId, result.id!,);
 
     return AppResponse().ok(HttpStatus.ok, {
       'music': {
@@ -55,7 +55,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'imageUrl': result.imageUrl,
         'albumId': result.albumId,
         'listenCount': result.listenCount,
-        'nation': result.nation
+        'nation': result.nation,
       },
       'authors': result.authors.map((author) {
         return {

@@ -18,7 +18,7 @@ abstract class IHistoryRepo {
   });
   Future<HistoryAuthor> addAuthorToHistoryAuthor(int userId, int authorId);
   Future<List<Map<String, dynamic>>> getAuthorByHistoryAuthor(int userId,
-      {int offset = 0, int limit = 8});
+      {int offset = 0, int limit = 8,});
   Future<HistoryAlbum?> createHistoryAlbum(
     int userId,
     int? albumId,
@@ -33,8 +33,8 @@ abstract class IHistoryRepo {
 }
 
 class HistoryRepository implements IHistoryRepo {
-  final Database _db;
   HistoryRepository(this._db);
+  final Database _db;
   @override
   Future<History> addMusicToHistory(int userId, int musicId) async {
     try {
@@ -76,9 +76,9 @@ class HistoryRepository implements IHistoryRepo {
 
         final row = existing.first;
         final history = History(
-          id: row[0] as int,
-          userId: row[1] as int,
-          musicId: row[2] as int,
+          id: row[0]! as int,
+          userId: row[1]! as int,
+          musicId: row[2]! as int,
           createdAt: row[3] as DateTime?,
         );
 
@@ -87,9 +87,9 @@ class HistoryRepository implements IHistoryRepo {
 
       final row = result.first;
       final history = History(
-        id: row[0] as int,
-        userId: row[1] as int,
-        musicId: row[2] as int,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        musicId: row[2]! as int,
         createdAt: row[3] as DateTime?,
       );
 
@@ -99,7 +99,7 @@ class HistoryRepository implements IHistoryRepo {
         rethrow;
       }
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -137,12 +137,12 @@ class HistoryRepository implements IHistoryRepo {
         },
       );
 
-      final Map<int, Map<String, dynamic>> grouped = {};
-      for (var row in result) {
-        final musicId = row[0] as int;
-        final title = row[1] as String;
-        final imageUrl = row[2] as String;
-        final authorName = row[3] as String;
+      final grouped = <int, Map<String, dynamic>>{};
+      for (final row in result) {
+        final musicId = row[0]! as int;
+        final title = row[1]! as String;
+        final imageUrl = row[2]! as String;
+        final authorName = row[3]! as String;
 
         grouped.putIfAbsent(
           musicId,
@@ -161,15 +161,15 @@ class HistoryRepository implements IHistoryRepo {
                 'id': entry['musicId'],
                 'title': entry['title'],
                 'imageUrl': entry['imageUrl'],
-                'authors': (entry['authors'] as List<String>).join(', ')
-              })
+                'authors': (entry['authors'] as List<String>).join(', '),
+              },)
           .toList();
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
       }
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -178,7 +178,7 @@ class HistoryRepository implements IHistoryRepo {
 
   @override
   Future<HistoryAuthor> addAuthorToHistoryAuthor(
-      int userId, int authorId) async {
+      int userId, int authorId,) async {
     try {
       final now = DateTime.now();
 
@@ -218,9 +218,9 @@ class HistoryRepository implements IHistoryRepo {
 
         final row = existing.first;
         final historyAuthor = HistoryAuthor(
-          id: row[0] as int,
-          userId: row[1] as int,
-          authorId: row[2] as int,
+          id: row[0]! as int,
+          userId: row[1]! as int,
+          authorId: row[2]! as int,
           createdAt: row[3] as DateTime?,
         );
 
@@ -229,9 +229,9 @@ class HistoryRepository implements IHistoryRepo {
 
       final row = result.first;
       final historyAuthor = HistoryAuthor(
-        id: row[0] as int,
-        userId: row[1] as int,
-        authorId: row[2] as int,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        authorId: row[2]! as int,
         createdAt: row[3] as DateTime?,
       );
 
@@ -241,7 +241,7 @@ class HistoryRepository implements IHistoryRepo {
         rethrow;
       }
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -278,15 +278,15 @@ class HistoryRepository implements IHistoryRepo {
 
       return result.map((row) {
         return {
-          'authorId': row[0] as int,
-          'authorName': row[1] as String,
-          'avatarUrl': row[2] as String,
+          'authorId': row[0]! as int,
+          'authorName': row[1]! as String,
+          'avatarUrl': row[2]! as String,
         };
       }).toList();
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -325,18 +325,18 @@ class HistoryRepository implements IHistoryRepo {
       final row = result.first;
 
       final historyAlbum = HistoryAlbum(
-        id: row[0] as int,
-        userId: row[1] as int,
-        albumId: row[2] as int,
-        musicId: row[3] as int,
-        createdAt: row[4] as DateTime,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        albumId: row[2]! as int,
+        musicId: row[3]! as int,
+        createdAt: row[4]! as DateTime,
       );
 
       return historyAlbum;
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -375,9 +375,9 @@ class HistoryRepository implements IHistoryRepo {
 
       final albums = result.map((row) {
         return {
-          'albumId': row[0] as int,
-          'albumTitle': row[1] as String,
-          'linkUrlImageAlbum': row[2] as String,
+          'albumId': row[0]! as int,
+          'albumTitle': row[1]! as String,
+          'linkUrlImageAlbum': row[2]! as String,
         };
       }).toList();
 
@@ -385,7 +385,7 @@ class HistoryRepository implements IHistoryRepo {
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

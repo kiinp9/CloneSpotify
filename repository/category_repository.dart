@@ -13,7 +13,7 @@ abstract class ICategoryRepo {
   Future<List<Category>> getAllCategory();
   Future<Category?> findCategoryById(int categoryId);
   Future<Category> updateCategory(
-      int categoryId, Map<String, dynamic> updateFields);
+      int categoryId, Map<String, dynamic> updateFields,);
 
   Future<Category> deleteCategoryById(int categoryId);
 }
@@ -27,7 +27,7 @@ class CategoryRepository implements ICategoryRepo {
   @override
   Future<int?> createCategory(Category category, String imagePath) async {
     try {
-      String? imageUrl =
+      final imageUrl =
           await _uploadImageCategoryService.uploadImageCategory(imagePath);
 
       final categoryResult = await _db.executor.execute(
@@ -46,23 +46,24 @@ class CategoryRepository implements ICategoryRepo {
       );
       if (categoryResult.isEmpty || categoryResult.first.isEmpty) {
         throw const CustomHttpException(
-            ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+            ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError,);
       }
 
-      final categoryId = categoryResult.first[0] as int;
+      final categoryId = categoryResult.first[0]! as int;
 
       return categoryId;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<List<Category>> getAllCategory() async {
     try {
       final result = await _db.executor.execute(
@@ -78,8 +79,8 @@ class CategoryRepository implements ICategoryRepo {
 
       final categories = result.map((row) {
         return Category(
-          id: row[0] as int,
-          name: row[1] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
           description: row[2] as String?,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
@@ -92,13 +93,14 @@ class CategoryRepository implements ICategoryRepo {
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Category?> findCategoryById(int categoryId) async {
     try {
       final result = await _db.executor.execute(
@@ -120,22 +122,22 @@ LIMIT 1
       DateTime? createdAt;
       if (row[3] != null) {
         createdAt = row[3] is DateTime
-            ? row[3] as DateTime
+            ? row[3]! as DateTime
             : DateTime.tryParse(row[3].toString());
       }
 
       DateTime? updatedAt;
       if (row[4] != null) {
         updatedAt = row[4] is DateTime
-            ? row[4] as DateTime
+            ? row[4]! as DateTime
             : DateTime.tryParse(row[4].toString());
       }
 
-      String? imageUrl = row[5] as String?;
+      final imageUrl = row[5] as String?;
 
       return Category(
-        id: row[0] as int,
-        name: row[1] as String,
+        id: row[0]! as int,
+        name: row[1]! as String,
         description: row[2] as String?,
         createdAt: createdAt,
         updatedAt: updatedAt,
@@ -145,15 +147,16 @@ LIMIT 1
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Category> updateCategory(
-      int categoryId, Map<String, dynamic> updateFields) async {
+      int categoryId, Map<String, dynamic> updateFields,) async {
     try {
       final setClauseParts = <String>[];
       final parameters = <String, dynamic>{
@@ -196,8 +199,8 @@ LIMIT 1
       final row = result.first;
 
       return Category(
-        id: row[0] as int,
-        name: row[1] as String,
+        id: row[0]! as int,
+        name: row[1]! as String,
         description: row[2] as String?,
         createdAt: row[3] as DateTime?,
         updatedAt: row[4] as DateTime?,
@@ -207,13 +210,14 @@ LIMIT 1
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Category> deleteCategoryById(int categoryId) async {
     try {
       final category = await findCategoryById(categoryId);
@@ -226,7 +230,7 @@ LIMIT 1
 
       final musicCategoryCheck = await _db.executor.execute(
         Sql.named(
-            'SELECT 1 FROM music_category WHERE categoryId = @id LIMIT 1'),
+            'SELECT 1 FROM music_category WHERE categoryId = @id LIMIT 1',),
         parameters: {'id': categoryId},
       );
       if (musicCategoryCheck.isNotEmpty) {
@@ -238,7 +242,7 @@ LIMIT 1
 
       final albumCategoryCheck = await _db.executor.execute(
         Sql.named(
-            'SELECT 1 FROM album_category WHERE categoryId = @id LIMIT 1'),
+            'SELECT 1 FROM album_category WHERE categoryId = @id LIMIT 1',),
         parameters: {'id': categoryId},
       );
       if (albumCategoryCheck.isNotEmpty) {
@@ -258,7 +262,7 @@ LIMIT 1
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

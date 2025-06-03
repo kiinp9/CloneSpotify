@@ -7,7 +7,7 @@ class AppResponse {
     return Response(
       statusCode: status,
       body: jsonEncode(
-          {'status_code': status, 'message': 'success', 'data': data}),
+          {'status_code': status, 'message': 'success', 'data': data},),
       headers: {HttpHeaders.contentTypeHeader: 'application/json'},
     );
   }

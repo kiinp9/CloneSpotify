@@ -2,7 +2,7 @@ class TokenResponse {
   TokenResponse(
       {required this.accessToken,
       required this.refreshToken,
-      required this.expiresIn});
+      required this.expiresIn,});
   String accessToken;
   String refreshToken;
   String expiresIn;

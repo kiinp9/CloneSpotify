@@ -26,14 +26,14 @@ Future<Response> onRequest(RequestContext context) async {
 
   try {
     final googleUser = await GoogleSecurity.verifyGoogleToken(
-        body['idToken']?.toString() ?? '');
+        body['idToken']?.toString() ?? '',);
 
     if (googleUser == null) {
       return AppResponse()
           .error(HttpStatus.unauthorized, ErrorMessage.ID_TOKEN_INVALID);
     }
 
-    var existingUser =
+    final existingUser =
         await userController.findUserByEmail(googleUser['email']!);
     if (existingUser != null) {
       final token = await jwtService.generateTokenJwt(existingUser);
@@ -61,7 +61,6 @@ Future<Response> onRequest(RequestContext context) async {
         orElse: () => GenderE.preferNotToSay,
       ),
       GoogleStatus: 2,
-      status: 1,
       roleId: 2,
     );
 

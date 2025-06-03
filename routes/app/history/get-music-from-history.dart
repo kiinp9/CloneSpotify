@@ -15,7 +15,7 @@ Future<Response> onRequest(RequestContext context) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
   final jwtUser = context.read<User?>();
-  final _historyController = context.read<HistoryController>();
+  final historyController = context.read<HistoryController>();
   final userController = context.read<UserController>();
   if (jwtUser == null) {
     return AppResponse()
@@ -27,7 +27,7 @@ Future<Response> onRequest(RequestContext context) async {
       return AppResponse()
           .error(HttpStatus.notFound, ErrorMessage.USER_NOT_FOUND);
     }
-    final result = await _historyController.getMusicByHistory(jwtUser.id!);
+    final result = await historyController.getMusicByHistory(jwtUser.id!);
     return AppResponse().ok(HttpStatus.ok, result);
   } catch (e) {
     if (e is CustomHttpException) {

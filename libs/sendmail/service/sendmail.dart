@@ -4,8 +4,6 @@ import 'package:mailer/smtp_server.dart';
 import '../template/mail.dart';
 
 class EmailService {
-  late final SmtpServer smtpServer;
-  late final String sourceEmail;
 
   EmailService() {
     final env = DotEnv()..load();
@@ -16,13 +14,14 @@ class EmailService {
 
     smtpServer = SmtpServer(
       'smtp.gmail.com',
-      port: 587,
       username: username,
       password: password,
       ignoreBadCertificate: true,
       allowInsecure: true,
     );
   }
+  late final SmtpServer smtpServer;
+  late final String sourceEmail;
 
   Future<void> sendOtpEmail(String recipient, String otp) async {
     final message = Message()

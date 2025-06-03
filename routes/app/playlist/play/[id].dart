@@ -14,7 +14,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
-  final _playlistController = context.read<PlaylistController>();
+  final playlistController = context.read<PlaylistController>();
   final historyController = context.read<HistoryController>();
   final user = context.read<User?>();
   if (user == null || user.id == null) {
@@ -33,34 +33,34 @@ Future<Response> onRequest(RequestContext context, String id) async {
         .error(HttpStatus.badRequest, ErrorMessage.PLAYLIST_NOT_FOUND);
   }
   try {
-    await _playlistController.setPlayMusicHistory(user.id!, musicId.toString());
-    await _playlistController.incrementListenCount(musicId);
-    final result = await _playlistController.playMusicInPlayList(
-        user.id!, playlistId, musicId);
+    await playlistController.setPlayMusicHistory(user.id!, musicId.toString());
+    await playlistController.incrementListenCount(musicId);
+    final result = await playlistController.playMusicInPlayList(
+        user.id!, playlistId, musicId,);
     await historyController.addMusicToHistory(user.id!, musicId);
 
-    final authors = (result?.authors ?? []);
+    final authors = result.authors ?? [];
     for (final author in authors) {
       await historyController.addAuthorToHistoryAuthor(user.id!, author.id!);
     }
     await historyController.createHistoryAlbum(
-        user.id!, result?.albumId, musicId);
+        user.id!, result.albumId, musicId,);
 
     return AppResponse().ok(HttpStatus.ok, {
       'music': {
-        'id': result?.id,
-        'title': result?.title,
-        'description': result?.description,
-        'broadcastTime': result?.broadcastTime,
-        'linkUrlMusic': result?.linkUrlMusic,
-        'createdAt': result?.createdAt?.toIso8601String(),
-        'updatedAt': result?.updatedAt?.toIso8601String(),
-        'imageUrl': result?.imageUrl,
-        'albumId': result?.albumId,
-        'listenCount': result?.listenCount,
-        'nation': result?.nation,
+        'id': result.id,
+        'title': result.title,
+        'description': result.description,
+        'broadcastTime': result.broadcastTime,
+        'linkUrlMusic': result.linkUrlMusic,
+        'createdAt': result.createdAt?.toIso8601String(),
+        'updatedAt': result.updatedAt?.toIso8601String(),
+        'imageUrl': result.imageUrl,
+        'albumId': result.albumId,
+        'listenCount': result.listenCount,
+        'nation': result.nation,
       },
-      'authors': result?.authors?.map((author) {
+      'authors': result.authors.map((author) {
         return {
           'id': author.id,
           'name': author.name,

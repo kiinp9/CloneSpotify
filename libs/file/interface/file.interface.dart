@@ -31,5 +31,5 @@ abstract class IFileService {
       {required String path,
       required int width,
       required int height,
-      int color = 0xFFFFFFFF});
+      int color = 0xFFFFFFFF,});
 }

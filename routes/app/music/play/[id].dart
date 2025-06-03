@@ -33,12 +33,12 @@ Future<Response> onRequest(RequestContext context, String id) async {
     final result = await musicController.findMusicById(id ?? 0);
     await historyController.addMusicToHistory(user.id!, musicId);
 
-    final authors = (result?.authors ?? []);
+    final authors = result?.authors ?? [];
     for (final author in authors) {
       await historyController.addAuthorToHistoryAuthor(user.id!, author.id!);
     }
     await historyController.createHistoryAlbum(
-        user.id!, result?.albumId, musicId);
+        user.id!, result?.albumId, musicId,);
 
     return AppResponse().ok(HttpStatus.ok, {
       'music': {
@@ -54,7 +54,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'listenCount': result?.listenCount,
         'nation': result?.nation,
       },
-      'authors': result?.authors?.map((author) {
+      'authors': result?.authors.map((author) {
         return {
           'id': author.id,
           'name': author.name,
@@ -64,7 +64,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
           'updatedAt': author.updatedAt?.toIso8601String(),
         };
       }).toList(),
-      'categories': result?.categories?.map((category) {
+      'categories': result?.categories.map((category) {
         return {
           'id': category.id,
           'name': category.name,

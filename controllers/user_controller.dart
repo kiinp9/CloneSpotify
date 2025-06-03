@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'dart:io';
+
 import '../constant/config.message.dart';
+import '../exception/config.exception.dart';
 import '../model/users.dart';
+import '../repository/user_repository.dart';
 import '../security/password.security.dart';
 import '../validate/email.dart';
 import '../validate/password.dart';
-import '../repository/user_repository.dart';
-import '../exception/config.exception.dart';
 import '../validate/strings.dart';
 
 class UserController {
@@ -16,11 +17,11 @@ class UserController {
     try {
       if (isNullOrEmpty(identifier)) {
         throw const CustomHttpException(
-            ErrorMessage.EMAIL_OR_USERNAME_REQUIRED, HttpStatus.badRequest);
+            ErrorMessage.EMAIL_OR_USERNAME_REQUIRED, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(password)) {
         throw const CustomHttpException(
-            ErrorMessage.PASSWORD_REQUIRED, HttpStatus.badRequest);
+            ErrorMessage.PASSWORD_REQUIRED, HttpStatus.badRequest,);
       }
       //if (!isValidPassword(password)) {
       //throw const CustomHttpException(
@@ -33,17 +34,17 @@ class UserController {
             await _userRepository.findUserByEmail(identifier!, showPass: true);
       } else {
         userDb = await _userRepository.findUserByUserName(identifier!,
-            showPass: true);
+            showPass: true,);
       }
 
       if (userDb == null || userDb.password == null) {
         throw const CustomHttpException(
-            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound);
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound,);
       }
 
       if (!verifyPassword(password, userDb.password!)) {
         throw const CustomHttpException(
-            ErrorMessage.PASSWORD_INCORRECT, HttpStatus.badRequest);
+            ErrorMessage.PASSWORD_INCORRECT, HttpStatus.badRequest,);
       }
 
       // ignore: join_return_with_assignment
@@ -55,7 +56,7 @@ class UserController {
       }
 
       return Future.error(CustomHttpException(
-          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
     }
   }
 
@@ -87,7 +88,7 @@ class UserController {
       user.password = genPassword(user.password!);
       final result = await _userRepository.saveUser(user);
       if (result > 0) {
-        final userDb = await _userRepository.findUserByEmail(user.email!);
+        final userDb = await _userRepository.findUserByEmail(user.email);
 
         completer.complete(userDb);
       }
@@ -96,7 +97,7 @@ class UserController {
         return Future.error(e);
       }
       return Future.error(CustomHttpException(
-          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
     }
 
     return completer.future;
@@ -121,7 +122,7 @@ class UserController {
   }
 
   Future<void> resetPassword(
-      int id, String newPassword, String confirmPassword) async {
+      int id, String newPassword, String confirmPassword,) async {
     final completer = Completer<void>();
     final errMsgList = <String>[];
 
@@ -149,13 +150,13 @@ class UserController {
     try {
       final userDb = await _userRepository.findUserById(id);
       if (userDb == null) {
-        throw CustomHttpException(
-            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound);
+        throw const CustomHttpException(
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound,);
       }
 
       // Nếu mật khẩu mới trùng với mật khẩu cũ (sau khi hash), báo lỗi
       if (verifyPassword(newPassword, userDb.password!)) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
           ErrorMessage.PASSWORD_CANNOT_BE_THE_SAME,
           HttpStatus.badRequest,
         );
@@ -169,14 +170,14 @@ class UserController {
         return Future.error(e);
       }
       return Future.error(CustomHttpException(
-          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
     }
 
     return completer.future;
   }
 
   Future<void> userResetPassword(int id, String currentPassword,
-      String newPassword, String confirmPassword) async {
+      String newPassword, String confirmPassword,) async {
     final completer = Completer<void>();
     final errMsgList = <String>[];
 
@@ -210,12 +211,12 @@ class UserController {
     try {
       final userDb = await _userRepository.findUserById(id);
       if (userDb == null) {
-        throw CustomHttpException(
-            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound);
+        throw const CustomHttpException(
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.notFound,);
       }
       if (!verifyPassword(currentPassword, userDb.password!)) {
-        throw CustomHttpException(
-            ErrorMessage.OLD_PASSWORD_INCORRECT, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.OLD_PASSWORD_INCORRECT, HttpStatus.badRequest,);
       }
 
       await _userRepository.updatePassword(id, genPassword(newPassword));
@@ -226,7 +227,7 @@ class UserController {
         return Future.error(e);
       }
       return Future.error(CustomHttpException(
-          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
     }
 
     return completer.future;
@@ -242,14 +243,14 @@ class UserController {
 
     if (errMsgList.isNotEmpty) {
       return Future.error(
-          CustomHttpException(errMsgList.join('; '), HttpStatus.badRequest));
+          CustomHttpException(errMsgList.join('; '), HttpStatus.badRequest),);
     }
 
     try {
       final existingUser = await _userRepository.findUserByEmail(user.email);
       if (existingUser != null) {
         throw const CustomHttpException(
-            ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest);
+            ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest,);
       }
 
       user.password = null;
@@ -257,13 +258,13 @@ class UserController {
 
       if (result <= 0) {
         throw const CustomHttpException(
-            ErrorMessageSQL.SAVE_USER_FAILED, HttpStatus.internalServerError);
+            ErrorMessageSQL.SAVE_USER_FAILED, HttpStatus.internalServerError,);
       }
 
       final userDb = await _userRepository.findUserByEmail(user.email);
       if (userDb == null) {
         throw const CustomHttpException(
-            ErrorMessage.USER_NOT_FOUND, HttpStatus.internalServerError);
+            ErrorMessage.USER_NOT_FOUND, HttpStatus.internalServerError,);
       }
 
       completer.complete(userDb);
@@ -272,7 +273,7 @@ class UserController {
         return Future.error(e);
       }
       return Future.error(CustomHttpException(
-          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
     }
 
     return completer.future;

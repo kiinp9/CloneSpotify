@@ -8,7 +8,7 @@ import '../interface/file.interface.dart';
 class FileService implements IFileService {
   @override
   Future<Uint8List> readBytes(String path) async {
-    return await File(path).readAsBytes();
+    return File(path).readAsBytes();
   }
 
   @override
@@ -30,15 +30,15 @@ class FileService implements IFileService {
       {required String path,
       required int width,
       required int height,
-      int color = 0xFFFFFFFF}) async {
+      int color = 0xFFFFFFFF,}) async {
     final image = img.Image(width: width, height: height);
     img.fill(image,
         color: img.ColorRgba8(
             (color >> 16) & 0xFF, // Red
             (color >> 8) & 0xFF, // Green
             color & 0xFF, // Blue
-            (color >> 24) & 0xFF // Alpha
-            ));
+            (color >> 24) & 0xFF, // Alpha
+            ),);
 
     final pngBytes = img.encodePng(image);
     await File(path).writeAsBytes(pngBytes);

@@ -15,7 +15,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
   final categoryId = int.tryParse(context.request.uri.pathSegments.last);
   if (categoryId == null) {
     return AppResponse().error(HttpStatus.internalServerError,
-        ErrorMessageRoute.PARAMETER_QUERY_ROUTER_NOT_NULL);
+        ErrorMessageRoute.PARAMETER_QUERY_ROUTER_NOT_NULL,);
   }
   try {
     final musics = await musicController.showMusicByCategory(categoryId);
@@ -28,7 +28,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
             .map((a) => {
                   'id': a.id,
                   'name': a.name,
-                })
+                },)
             .toList(),
       };
     }).toList();

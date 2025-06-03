@@ -1,8 +1,6 @@
 class PlaylistItem {
   PlaylistItem({
-    this.id,
-    required this.playlistId,
-    required this.musicId,
+    required this.playlistId, required this.musicId, this.id,
     this.createdAt,
   });
 

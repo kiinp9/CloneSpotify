@@ -1,6 +1,6 @@
-import 'music.dart';
 import 'author.dart';
 import 'category.dart';
+import 'music.dart';
 
 class Album {
   Album({

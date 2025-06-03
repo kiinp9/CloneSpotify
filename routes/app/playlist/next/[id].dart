@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:dart_frog/dart_frog.dart';
 
@@ -15,7 +14,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
-  final _playlistController = context.read<PlaylistController>();
+  final playlistController = context.read<PlaylistController>();
   final historyController = context.read<HistoryController>();
   final user = context.read<User?>();
   if (user == null || user.id == null) {
@@ -33,21 +32,21 @@ Future<Response> onRequest(RequestContext context, String id) async {
         .error(HttpStatus.badRequest, ErrorMessage.PLAYLIST_NOT_FOUND);
   }
   try {
-    final result = await _playlistController.nextMusic(
-        currentMusicId, user.id!, playlistId);
+    final result = await playlistController.nextMusic(
+        currentMusicId, user.id!, playlistId,);
     if (result == null) {
       return AppResponse()
           .error(HttpStatus.notFound, ErrorMessage.MUSIC_NOT_FOUND);
     }
-    await _playlistController.playNextMusic(user.id!, result.id!.toString());
-    await _playlistController.incrementListenCount(result.id!);
+    await playlistController.playNextMusic(user.id!, result.id!.toString());
+    await playlistController.incrementListenCount(result.id!);
     await historyController.addMusicToHistory(user.id!, result.id!);
-    final authors = (result?.authors ?? []);
+    final authors = result.authors ?? [];
     for (final author in authors) {
       await historyController.addAuthorToHistoryAuthor(user.id!, author.id!);
     }
     await historyController.createHistoryAlbum(
-        user.id!, result?.albumId, result.id!);
+        user.id!, result.albumId, result.id!,);
 
     return AppResponse().ok(HttpStatus.ok, {
       'music': {
@@ -61,7 +60,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'imageUrl': result.imageUrl,
         'albumId': result.albumId,
         'listenCount': result.listenCount,
-        'nation': result.nation
+        'nation': result.nation,
       },
       'authors': result.authors.map((author) {
         return {

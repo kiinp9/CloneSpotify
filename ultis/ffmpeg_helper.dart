@@ -13,7 +13,7 @@ class FFmpegHelper {
       if (ffmpegPath == null || !File(filePath).existsSync()) return null;
 
       // Định dạng lại đường dẫn file để tránh lỗi
-      final safeFilePath = filePath.replaceAll(r"\", "/");
+      final safeFilePath = filePath.replaceAll(r'\', '/');
 
       // Chạy lệnh FFmpeg để lấy thông tin file
       final result = await Process.run(
@@ -59,9 +59,9 @@ class FFmpegHelper {
 
         // Kiểm tra các vị trí phổ biến trên Windows
         final commonPaths = [
-          'C:\\ffmpeg\\bin\\ffmpeg.exe',
-          'C:\\Program Files\\ffmpeg\\bin\\ffmpeg.exe',
-          'C:\\Program Files (x86)\\ffmpeg\\bin\\ffmpeg.exe'
+          r'C:\ffmpeg\bin\ffmpeg.exe',
+          r'C:\Program Files\ffmpeg\bin\ffmpeg.exe',
+          r'C:\Program Files (x86)\ffmpeg\bin\ffmpeg.exe',
         ];
 
         for (final path in commonPaths) {
@@ -80,7 +80,7 @@ class FFmpegHelper {
         final commonPaths = [
           '/usr/bin/ffmpeg',
           '/usr/local/bin/ffmpeg',
-          '/opt/homebrew/bin/ffmpeg'
+          '/opt/homebrew/bin/ffmpeg',
         ];
 
         for (final path in commonPaths) {

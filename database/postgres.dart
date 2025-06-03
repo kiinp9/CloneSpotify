@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:postgres/postgres.dart';
+
 import 'package:dotenv/dotenv.dart';
+import 'package:postgres/postgres.dart';
 
 class Database {
   Database() {
@@ -13,11 +14,11 @@ class Database {
     try {
       final env = DotEnv()..load();
 
-      final String dbHost = env['DB_HOST'] ?? '';
-      final int dbPort = int.tryParse(env['DB_PORT'] ?? '') ?? 5432;
-      final String dbName = env['DB_NAME'] ?? '';
-      final String dbUser = env['DB_USERNAME'] ?? '';
-      final String dbPass = env['DB_PASSWORD'] ?? '';
+      final dbHost = env['DB_HOST'] ?? '';
+      final dbPort = int.tryParse(env['DB_PORT'] ?? '') ?? 5432;
+      final dbName = env['DB_NAME'] ?? '';
+      final dbUser = env['DB_USERNAME'] ?? '';
+      final dbPass = env['DB_PASSWORD'] ?? '';
 
       executor = await Connection.open(
         Endpoint(
@@ -27,7 +28,7 @@ class Database {
           username: dbUser,
           password: dbPass,
         ),
-        settings: ConnectionSettings(sslMode: SslMode.disable),
+        settings: const ConnectionSettings(sslMode: SslMode.disable),
       );
 
       print('✅ Kết nối đến PostgreSQL thành công!');

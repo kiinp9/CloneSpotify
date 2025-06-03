@@ -45,18 +45,18 @@ class ErrorMessage {
       'File nhạc hoặc ảnh không hợp lệ';
   static const String FILE_NOT_EXIST = 'File không tồn tại';
   static const String UPLOAD_FAIL = 'upload file thất bại';
-  static const String EMPTY_TITLE = "Tiêu đề bài nhạc không được để trống";
-  static const String EMPTY_DESCRIPTION = "Mô tả bài nhạc không được để trống";
-  static const String EMPTY_AUTHOR_NAME = "Tên tác giả không được để trống";
-  static const String EMPTY_AUTHOR_DESC = "Mô tả tác giả không được để trống";
+  static const String EMPTY_TITLE = 'Tiêu đề bài nhạc không được để trống';
+  static const String EMPTY_DESCRIPTION = 'Mô tả bài nhạc không được để trống';
+  static const String EMPTY_AUTHOR_NAME = 'Tên tác giả không được để trống';
+  static const String EMPTY_AUTHOR_DESC = 'Mô tả tác giả không được để trống';
   static const String EMPTY_AUTHOR_AVATAR =
-      "Ảnh đại diện của tác giả không được để trống";
-  static const String INVALID_MUSIC_PATH = "Đường dẫn tệp nhạc không hợp lệ";
+      'Ảnh đại diện của tác giả không được để trống';
+  static const String INVALID_MUSIC_PATH = 'Đường dẫn tệp nhạc không hợp lệ';
   static const String INVALID_IMAGE_PATH =
-      "Đường dẫn tệp hình ảnh không hợp lệ";
+      'Đường dẫn tệp hình ảnh không hợp lệ';
   static const String EMPTY_CATEGORY_DESCRIPTION =
-      "Nội dung thể loại không được để trống";
-  static const String EMPTY_CATEGORY_NAME = "Tên thể loại không được để trống";
+      'Nội dung thể loại không được để trống';
+  static const String EMPTY_CATEGORY_NAME = 'Tên thể loại không được để trống';
   static const String SAVED_DB_FAIL = 'Xảy ra lỗi khi lưu vào database';
   static const String FORBIDDEN = 'Bạn không quyền thực hiện thao tác này';
   static const String EMPTY_ALBUM_TITLE = 'Title album không được để trống';

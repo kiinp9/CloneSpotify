@@ -1,21 +1,25 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:postgres/postgres.dart';
+
 import '../constant/config.message.dart';
 import '../database/postgres.dart';
 import '../exception/config.exception.dart';
-
 import '../libs/cloudinary/service/upload-music.service.dart';
 import '../model/author.dart';
 import '../model/category.dart';
 import '../model/music.dart';
-
 import '../ultis/ffmpeg_helper.dart';
 
 abstract class IMusicRepo {
-  Future<int?> uploadMusic(Music music, String musicFilePath,
-      String imageFilePath, Author author, List<Category> categories);
+  Future<int?> uploadMusic(
+    Music music,
+    String musicFilePath,
+    String imageFilePath,
+    Author author,
+    List<Category> categories,
+  );
   Future<Music?> findMusicById(int id);
   Future<Music?> findMusicByTitle(String title);
   Future<List<Music>> showMusicPaging({int offset = 0, int limit = 10});
@@ -32,20 +36,26 @@ class MusicRepository implements IMusicRepo {
   final UploadMusicService _uploadMusicService;
 
   @override
-  Future<int?> uploadMusic(Music music, String musicFilePath,
-      String imageFilePath, Author author, List<Category> categories) async {
+  Future<int?> uploadMusic(
+    Music music,
+    String musicFilePath,
+    String imageFilePath,
+    Author author,
+    List<Category> categories,
+  ) async {
     try {
-      final int? durationInSeconds =
+      final durationInSeconds =
           await FFmpegHelper.getAudioDuration(musicFilePath);
       if (durationInSeconds == null) {
         throw const CustomHttpException(
-            ErrorMessage.UNABLE_TO_GET_SONG_DURATION,
-            HttpStatus.internalServerError);
+          ErrorMessage.UNABLE_TO_GET_SONG_DURATION,
+          HttpStatus.internalServerError,
+        );
       }
 
-      String? musicUrl = await _uploadMusicService.uploadFile(musicFilePath);
-      String? imageUrl = await _uploadMusicService.uploadFile(imageFilePath);
-      String? avatarUrl = author.avatarUrl != null
+      final musicUrl = await _uploadMusicService.uploadFile(musicFilePath);
+      final imageUrl = await _uploadMusicService.uploadFile(imageFilePath);
+      final avatarUrl = author.avatarUrl != null
           ? await _uploadMusicService.uploadFile(author.avatarUrl!)
           : null;
 
@@ -72,10 +82,12 @@ class MusicRepository implements IMusicRepo {
 
       if (musicResult.isEmpty || musicResult.first.isEmpty) {
         throw const CustomHttpException(
-            ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError);
+          ErrorMessageSQL.SQL_QUERY_ERROR,
+          HttpStatus.internalServerError,
+        );
       }
 
-      final musicId = musicResult.first[0] as int;
+      final musicId = musicResult.first[0]! as int;
 
       final existingAuthorResult = await _db.executor.execute(
         Sql.named('SELECT id FROM author WHERE name = @name'),
@@ -85,7 +97,7 @@ class MusicRepository implements IMusicRepo {
       int authorId;
       if (existingAuthorResult.isNotEmpty &&
           existingAuthorResult.first.isNotEmpty) {
-        authorId = existingAuthorResult.first[0] as int;
+        authorId = existingAuthorResult.first[0]! as int;
         await _db.executor.execute(
           Sql.named('''
             UPDATE author 
@@ -116,12 +128,13 @@ class MusicRepository implements IMusicRepo {
             'updatedAt': now,
           },
         );
-        authorId = authorResult.first[0] as int;
+        authorId = authorResult.first[0]! as int;
       }
 
       final existingMusicAuthorResult = await _db.executor.execute(
         Sql.named(
-            'SELECT 1 FROM music_author WHERE musicId = @musicId AND authorId = @authorId'),
+          'SELECT 1 FROM music_author WHERE musicId = @musicId AND authorId = @authorId',
+        ),
         parameters: {
           'musicId': musicId,
           'authorId': authorId,
@@ -142,7 +155,7 @@ class MusicRepository implements IMusicRepo {
       }
 
       if (categories.isNotEmpty) {
-        for (var category in categories) {
+        for (final category in categories) {
           final existingCategoryResult = await _db.executor.execute(
             Sql.named('SELECT id FROM category WHERE name = @name'),
             parameters: {'name': category.name},
@@ -151,7 +164,7 @@ class MusicRepository implements IMusicRepo {
           int categoryId;
           if (existingCategoryResult.isNotEmpty &&
               existingCategoryResult.first.isNotEmpty) {
-            categoryId = existingCategoryResult.first[0] as int;
+            categoryId = existingCategoryResult.first[0]! as int;
             await _db.executor.execute(
               Sql.named('''
                 UPDATE category 
@@ -179,12 +192,13 @@ class MusicRepository implements IMusicRepo {
                 'updatedAt': now,
               },
             );
-            categoryId = categoryResult.first[0] as int;
+            categoryId = categoryResult.first[0]! as int;
           }
 
           final existingMusicCategoryResult = await _db.executor.execute(
             Sql.named(
-                'SELECT 1 FROM music_category WHERE musicId = @musicId AND categoryId = @categoryId'),
+              'SELECT 1 FROM music_category WHERE musicId = @musicId AND categoryId = @categoryId',
+            ),
             parameters: {
               'musicId': musicId,
               'categoryId': categoryId,
@@ -209,7 +223,9 @@ class MusicRepository implements IMusicRepo {
       return musicId;
     } catch (e) {
       throw CustomHttpException(
-          "Lỗi khi upload nhạc: $e", HttpStatus.internalServerError);
+        'Lỗi khi upload nhạc: $e',
+        HttpStatus.internalServerError,
+      );
     }
   }
 
@@ -226,7 +242,7 @@ class MusicRepository implements IMusicRepo {
       );
 
       if (musicResult.isEmpty) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
           ErrorMessage.MUSIC_NOT_FOUND,
           HttpStatus.notFound,
         );
@@ -234,16 +250,16 @@ class MusicRepository implements IMusicRepo {
 
       final musicRow = musicResult.first;
       final music = Music(
-        id: musicRow[0] as int,
-        title: musicRow[1] as String,
-        description: musicRow[2] as String,
-        broadcastTime: musicRow[3] as int,
-        linkUrlMusic: musicRow[4] as String,
+        id: musicRow[0]! as int,
+        title: musicRow[1]! as String,
+        description: musicRow[2]! as String,
+        broadcastTime: musicRow[3]! as int,
+        linkUrlMusic: musicRow[4]! as String,
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
-        imageUrl: musicRow[7] as String,
+        imageUrl: musicRow[7]! as String,
         albumId: musicRow[8] as int?,
-        listenCount: musicRow[9] as int,
+        listenCount: musicRow[9]! as int,
         nation: musicRow[10] as String? ?? '',
       );
 
@@ -259,11 +275,11 @@ class MusicRepository implements IMusicRepo {
 
       music.authors = authorResult.map((row) {
         return Author(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           avatarUrl: row[3] as String?,
-          followingCount: row[4] as int,
+          followingCount: row[4]! as int,
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
         );
@@ -281,9 +297,9 @@ class MusicRepository implements IMusicRepo {
 
       music.categories = categoryResult.map((row) {
         return Category(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
           imageUrl: row[5] as String? ?? '',
@@ -296,7 +312,7 @@ class MusicRepository implements IMusicRepo {
         rethrow;
       }
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -316,23 +332,23 @@ class MusicRepository implements IMusicRepo {
       );
 
       if (musicResult.isEmpty) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
           ErrorMessage.MUSIC_NOT_FOUND,
           HttpStatus.notFound,
         );
       }
       final musicRow = musicResult.first;
       final music = Music(
-        id: musicRow[0] as int,
-        title: musicRow[1] as String,
-        description: musicRow[2] as String,
-        broadcastTime: musicRow[3] as int,
-        linkUrlMusic: musicRow[4] as String,
+        id: musicRow[0]! as int,
+        title: musicRow[1]! as String,
+        description: musicRow[2]! as String,
+        broadcastTime: musicRow[3]! as int,
+        linkUrlMusic: musicRow[4]! as String,
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
-        imageUrl: musicRow[7] as String,
-        listenCount: musicRow[8] as int,
-        nation: musicRow[9] as String,
+        imageUrl: musicRow[7]! as String,
+        listenCount: musicRow[8]! as int,
+        nation: musicRow[9]! as String,
       );
 
       final authorResult = await _db.executor.execute(
@@ -347,11 +363,11 @@ class MusicRepository implements IMusicRepo {
 
       music.authors = authorResult.map((row) {
         return Author(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           avatarUrl: row[3] as String?,
-          followingCount: row[4] as int,
+          followingCount: row[4]! as int,
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
         );
@@ -369,12 +385,12 @@ class MusicRepository implements IMusicRepo {
 
       music.categories = categoryResult.map((row) {
         return Category(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
-          imageUrl: row[5] as String,
+          imageUrl: row[5]! as String,
         );
       }).toList();
 
@@ -383,7 +399,7 @@ class MusicRepository implements IMusicRepo {
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -411,13 +427,13 @@ class MusicRepository implements IMusicRepo {
         return [];
       }
 
-      final List<Music> musics = [];
+      final musics = <Music>[];
 
       for (final row in musicResult) {
         final music = Music(
-          id: row[0] as int,
-          title: row[1] as String,
-          imageUrl: row[2] as String,
+          id: row[0]! as int,
+          title: row[1]! as String,
+          imageUrl: row[2]! as String,
         );
 
         final authorResult = await _db.executor.execute(
@@ -432,8 +448,8 @@ class MusicRepository implements IMusicRepo {
 
         music.authors = authorResult.map((row) {
           return Author(
-            id: row[0] as int,
-            name: row[1] as String,
+            id: row[0]! as int,
+            name: row[1]! as String,
           );
         }).toList();
 
@@ -445,7 +461,7 @@ class MusicRepository implements IMusicRepo {
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -469,7 +485,7 @@ class MusicRepository implements IMusicRepo {
         return null;
       }
 
-      final authorId = authorResult.first[0] as int;
+      final authorId = authorResult.first[0]! as int;
 
       final nextMusicResult = await _db.executor.execute(
         Sql.named('''
@@ -488,7 +504,7 @@ class MusicRepository implements IMusicRepo {
       );
 
       if (nextMusicResult.isEmpty) {
-        throw CustomHttpException(
+        throw const CustomHttpException(
           ErrorMessage.MUSIC_NOT_FOUND,
           HttpStatus.notFound,
         );
@@ -497,17 +513,17 @@ class MusicRepository implements IMusicRepo {
       final musicRow = nextMusicResult.first;
 
       final music = Music(
-        id: musicRow[0] as int,
-        title: musicRow[1] as String,
-        description: musicRow[2] as String,
-        broadcastTime: musicRow[3] as int,
-        linkUrlMusic: musicRow[4] as String,
+        id: musicRow[0]! as int,
+        title: musicRow[1]! as String,
+        description: musicRow[2]! as String,
+        broadcastTime: musicRow[3]! as int,
+        linkUrlMusic: musicRow[4]! as String,
         createdAt: _parseDate(musicRow[5]),
         updatedAt: _parseDate(musicRow[6]),
-        imageUrl: musicRow[7] as String,
+        imageUrl: musicRow[7]! as String,
         albumId: musicRow[8] as int?,
-        listenCount: musicRow[9] as int,
-        nation: musicRow[10] as String,
+        listenCount: musicRow[9]! as int,
+        nation: musicRow[10]! as String,
       );
       if (music.id != null) {
         await incrementListenCount(music.id!);
@@ -525,11 +541,11 @@ class MusicRepository implements IMusicRepo {
 
       music.authors = author.map((row) {
         return Author(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           avatarUrl: row[3] as String?,
-          followingCount: row[4] as int,
+          followingCount: row[4]! as int,
           createdAt: _parseDate(row[5]),
           updatedAt: _parseDate(row[6]),
         );
@@ -547,12 +563,12 @@ class MusicRepository implements IMusicRepo {
 
       music.categories = categoryResult.map((row) {
         return Category(
-          id: row[0] as int,
-          name: row[1] as String,
-          description: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
           createdAt: _parseDate(row[3]),
           updatedAt: _parseDate(row[4]),
-          imageUrl: row[5] as String,
+          imageUrl: row[5]! as String,
         );
       }).toList();
 
@@ -561,7 +577,7 @@ class MusicRepository implements IMusicRepo {
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -584,13 +600,13 @@ WHERE mc.categoryId = @categoryId
         return [];
       }
 
-      final List<Music> musics = [];
+      final musics = <Music>[];
 
       for (final row in musicResult) {
         final music = Music(
-          id: row[0] as int,
-          title: row[1] as String,
-          imageUrl: row[2] as String,
+          id: row[0]! as int,
+          title: row[1]! as String,
+          imageUrl: row[2]! as String,
         );
 
         final authorResult = await _db.executor.execute(
@@ -605,8 +621,8 @@ WHERE mc.categoryId = @categoryId
 
         music.authors = authorResult.map((row) {
           return Author(
-            id: row[0] as int,
-            name: row[1] as String,
+            id: row[0]! as int,
+            name: row[1]! as String,
           );
         }).toList();
 
@@ -618,7 +634,7 @@ WHERE mc.categoryId = @categoryId
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -661,15 +677,18 @@ WHERE mc.categoryId = @categoryId
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Music> updateMusic(
-      int musicId, Map<String, dynamic> updateFields) async {
+    int musicId,
+    Map<String, dynamic> updateFields,
+  ) async {
     try {
       final setClauseParts = <String>[];
       final parameters = <String, dynamic>{
@@ -711,29 +730,30 @@ RETURNING id,title,description,broadcastTime,linkUrlMusic,createdAt,updatedAt,im
 
       final row = result.first;
       return Music(
-        id: row[0] as int,
-        title: row[1] as String,
-        description: row[2] as String,
-        broadcastTime: row[3] as int,
-        linkUrlMusic: row[4] as String,
+        id: row[0]! as int,
+        title: row[1]! as String,
+        description: row[2]! as String,
+        broadcastTime: row[3]! as int,
+        linkUrlMusic: row[4]! as String,
         createdAt: row[5] as DateTime?,
         updatedAt: row[6] as DateTime?,
         imageUrl: row[7] as String?,
-        albumId: row[8] as int,
-        listenCount: row[9] as int,
-        nation: row[10] as String,
+        albumId: row[8]! as int,
+        listenCount: row[9]! as int,
+        nation: row[10]! as String,
       );
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Music> deleteMusic(int musicId) async {
     try {
       final result = await _db.executor.execute(
@@ -751,16 +771,16 @@ RETURNING id,title,description,broadcastTime,linkUrlMusic,createdAt,updatedAt,im
       final row = result.first;
 
       final music = Music(
-        id: row[0] as int,
-        title: row[1] as String,
-        description: row[2] as String,
-        broadcastTime: row[3] as int,
-        linkUrlMusic: row[4] as String,
+        id: row[0]! as int,
+        title: row[1]! as String,
+        description: row[2]! as String,
+        broadcastTime: row[3]! as int,
+        linkUrlMusic: row[4]! as String,
         createdAt: row[5] as DateTime?,
         updatedAt: row[6] as DateTime?,
         imageUrl: row[7] as String?,
-        albumId: row[8] as int,
-        listenCount: row[9] as int,
+        albumId: row[8]! as int,
+        listenCount: row[9]! as int,
         nation: row[10] as String? ?? '',
       );
 
@@ -784,7 +804,7 @@ RETURNING id,title,description,broadcastTime,linkUrlMusic,createdAt,updatedAt,im
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

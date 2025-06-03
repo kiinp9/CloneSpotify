@@ -1,8 +1,6 @@
 class FollowAuthor {
   FollowAuthor({
-    this.id,
-    required this.userId,
-    required this.authorId,
+    required this.userId, required this.authorId, this.id,
     this.createdAt,
     this.updatedAt,
   });

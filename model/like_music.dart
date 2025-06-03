@@ -1,8 +1,6 @@
 class LikeMusic {
   LikeMusic({
-    this.id,
-    required this.userId,
-    required this.musicId,
+    required this.userId, required this.musicId, this.id,
     this.createdAt,
     this.updatedAt,
   });

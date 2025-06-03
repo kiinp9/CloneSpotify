@@ -77,7 +77,7 @@ Handler middleware(Handler handler) {
       .use(provider<HistoryController>((context) => historyController))
       .use(provider<LikeMusicController>((context) => likeMusicController))
       .use(
-          provider<FollowAuthorController>((context) => followAuthorController))
+          provider<FollowAuthorController>((context) => followAuthorController),)
       .use(provider<SearchController>((context) => searchController))
       .use(provider<UploadMusicService>((context) => uploadMusicService))
       .use(provider<UploadAlbumService>((context) => uploadAlbumService))
@@ -96,45 +96,45 @@ Middleware injectionController(JwtService jwtService) {
         .use(provider<UserRepository>((context) {
       final db = context.read<Database>();
       return UserRepository(db);
-    })).use(provider<UserController>((context) {
+    }),).use(provider<UserController>((context) {
       final userRepository = context.read<UserRepository>();
       return UserController(userRepository);
-    })).use(provider<MusicRepository>((context) {
+    }),).use(provider<MusicRepository>((context) {
       final db = context.read<Database>();
       return MusicRepository(db);
-    })).use(provider<MusicController>((context) {
+    }),).use(provider<MusicController>((context) {
       final musicRepository = context.read<MusicRepository>();
       return MusicController(musicRepository, redisService);
-    })).use(provider<AuthorController>((context) {
+    }),).use(provider<AuthorController>((context) {
       final authorRepository = context.read<AuthorRepository>();
       return AuthorController(authorRepository);
-    })).use(provider<CategoryController>((context) {
+    }),).use(provider<CategoryController>((context) {
       final categoryRepository = context.read<CategoryRepository>();
       return CategoryController(categoryRepository);
-    })).use(provider<AlbumController>((context) {
+    }),).use(provider<AlbumController>((context) {
       final albumRepository = context.read<AlbumRepository>();
       return AlbumController(albumRepository);
-    })).use(provider<PlaylistController>((context) {
+    }),).use(provider<PlaylistController>((context) {
       final playlistRepository = context.read<PlaylistRepository>();
       return PlaylistController(playlistRepository, redisService);
-    })).use(provider<HistoryController>((context) {
+    }),).use(provider<HistoryController>((context) {
       final historyRepository = context.read<HistoryRepository>();
       return HistoryController(historyRepository);
-    })).use(provider<LikeMusicController>((context) {
+    }),).use(provider<LikeMusicController>((context) {
       final likeMusicRepository = context.read<LikeMusicRepository>();
       return LikeMusicController(likeMusicRepository);
-    })).use(provider<FollowAuthorController>((context) {
+    }),).use(provider<FollowAuthorController>((context) {
       final followAuthorRepository = context.read<FollowAuthorRepository>();
       return FollowAuthorController(followAuthorRepository);
-    })).use(provider<SearchController>((context) {
+    }),).use(provider<SearchController>((context) {
       final searchRepository = context.read<SearchRepository>();
       return SearchController(searchRepository);
-    })).use(loggingMiddleware());
+    }),).use(loggingMiddleware());
   };
 }
 
 Middleware createJwtMiddleware(
-    JwtService jwtService, IRedisService redisService) {
+    JwtService jwtService, IRedisService redisService,) {
   return (handler) {
     return (context) async {
       try {
@@ -154,7 +154,7 @@ Middleware createJwtMiddleware(
             statusCode: HttpStatus.unauthorized,
             body: {
               'message':
-                  'Thiếu hoặc token không hợp lệ trong header Authorization'
+                  'Thiếu hoặc token không hợp lệ trong header Authorization',
             },
           );
         }
@@ -199,7 +199,7 @@ Middleware createJwtMiddleware(
       } catch (e) {
         return Response.json(
           statusCode: HttpStatus.unauthorized,
-          body: {'message': 'Xác thực token thất bại: ${e.toString()}'},
+          body: {'message': 'Xác thực token thất bại: $e'},
         );
       }
     };
@@ -214,7 +214,7 @@ Middleware loggingMiddleware() {
       final path = request.uri.toString();
       final headers = request.headers;
 
-      String requestBody = await request.body();
+      var requestBody = await request.body();
       if (requestBody.isEmpty) requestBody = '{}';
 
       AppLogger.logRequest(method, path, headers, requestBody);
@@ -229,7 +229,7 @@ Middleware loggingMiddleware() {
           path,
           response.statusCode,
           jsonDecode(responseBody.isNotEmpty ? responseBody : '""'),
-          response.headers);
+          response.headers,);
 
       return newResponse;
     };

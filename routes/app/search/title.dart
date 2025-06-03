@@ -33,7 +33,7 @@ Future<Response> onRequest(RequestContext context) async {
         'updatedAt': result?.updatedAt?.toIso8601String(),
         'imageUrl': result?.imageUrl,
       },
-      'authors': result?.authors?.map((author) {
+      'authors': result?.authors.map((author) {
         return {
           'id': author.id,
           'name': author.name,
@@ -43,7 +43,7 @@ Future<Response> onRequest(RequestContext context) async {
           'updatedAt': author.updatedAt?.toIso8601String(),
         };
       }).toList(),
-      'categories': result?.categories?.map((category) {
+      'categories': result?.categories.map((category) {
         return {
           'id': category.id,
           'name': category.name,

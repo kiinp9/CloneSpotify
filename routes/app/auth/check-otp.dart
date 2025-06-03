@@ -1,10 +1,12 @@
 import 'dart:io';
+
 import 'package:dart_frog/dart_frog.dart';
+
 import '../../../constant/config.message.dart';
 import '../../../controllers/user_controller.dart';
 import '../../../database/redis.dart';
-import '../../../model/response.dart';
 import '../../../exception/config.exception.dart';
+import '../../../model/response.dart';
 import '../../../security/otp.security.dart';
 import '../../../security/reset-password-token.security.dart';
 
@@ -37,7 +39,7 @@ Future<Response> onRequest(RequestContext context) async {
     final user = await userController.findUserByEmail(email);
     if (user == null) {
       throw const CustomHttpException(
-          ErrorMessage.USER_NOT_FOUND, HttpStatus.badRequest);
+          ErrorMessage.USER_NOT_FOUND, HttpStatus.badRequest,);
     }
     final token = generateResetPassTokenJwt(user);
 

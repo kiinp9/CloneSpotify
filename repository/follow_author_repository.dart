@@ -18,8 +18,8 @@ abstract class IFollowAuthorRepo {
 }
 
 class FollowAuthorRepository implements IFollowAuthorRepo {
-  final Database _db;
   FollowAuthorRepository(this._db);
+  final Database _db;
 
   @override
   Future<FollowAuthor?> followAuthor(int userId, int authorId) async {
@@ -36,7 +36,7 @@ class FollowAuthorRepository implements IFollowAuthorRepo {
         'authorId': authorId,
         'createdAt': now,
         'updatedAt': now,
-      });
+      },);
 
       if (result.isEmpty) {
         return null;
@@ -48,20 +48,20 @@ class FollowAuthorRepository implements IFollowAuthorRepo {
       WHERE id = @authorId
     '''), parameters: {
         'authorId': authorId,
-      });
+      },);
 
       final row = result.first;
       return FollowAuthor(
-        id: row[0] as int,
-        userId: row[1] as int,
-        authorId: row[2] as int,
-        createdAt: row[3] as DateTime,
-        updatedAt: row[4] as DateTime,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        authorId: row[2]! as int,
+        createdAt: row[3]! as DateTime,
+        updatedAt: row[4]! as DateTime,
       );
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -88,11 +88,11 @@ class FollowAuthorRepository implements IFollowAuthorRepo {
 
       final row = author.first;
       final followAuthor = FollowAuthor(
-        id: row[0] as int,
-        userId: row[1] as int,
-        authorId: row[2] as int,
-        createdAt: row[3] as DateTime,
-        updatedAt: row[4] as DateTime,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        authorId: row[2]! as int,
+        createdAt: row[3]! as DateTime,
+        updatedAt: row[4]! as DateTime,
       );
 
       await _db.executor.execute(
@@ -121,7 +121,7 @@ class FollowAuthorRepository implements IFollowAuthorRepo {
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -158,15 +158,15 @@ LIMIT @limit OFFSET @offset
 
       return result.map((row) {
         return {
-          'authorId': row[0] as int,
-          'authorName': row[1] as String,
-          'avatarUrl': row[2] as String,
+          'authorId': row[0]! as int,
+          'authorName': row[1]! as String,
+          'avatarUrl': row[2]! as String,
         };
       }).toList();
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

@@ -1,13 +1,12 @@
 import 'dart:io';
 
 import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
-import '../config/jwt.config.dart';
 
+import '../config/jwt.config.dart';
 import '../constant/config.message.dart';
-import '../model/users.dart';
-import '../model/roles.dart';
 import '../exception/config.exception.dart';
 import '../exception/exception.dart';
+import '../model/users.dart';
 
 String generateResetPassTokenJwt(User user) {
   final resetPassJwt = JWT(
@@ -16,8 +15,8 @@ String generateResetPassTokenJwt(User user) {
       'email': user.email,
       'roleId': user.roleId,
       'roleName': user.role?.name,
-      'checkOtp': "true",
-      'exp': DateTime.now().add(Duration(minutes: 10)).millisecondsSinceEpoch ~/
+      'checkOtp': 'true',
+      'exp': DateTime.now().add(const Duration(minutes: 10)).millisecondsSinceEpoch ~/
           1000,
     },
   );
@@ -37,7 +36,7 @@ Map<String, dynamic>? decodeResetToken(String token) {
     };
   } catch (e) {
     throw const CustomHttpException(
-        ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+        ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError,);
   }
 }
 
@@ -47,6 +46,6 @@ AppException? verifyResetToken(String token) {
     return null;
   } catch (e) {
     throw const CustomHttpException(
-        ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+        ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError,);
   }
 }

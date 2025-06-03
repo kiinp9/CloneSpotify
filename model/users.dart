@@ -1,12 +1,11 @@
-import 'roles.dart';
 import '../constant/config.constant.dart';
+import 'roles.dart';
 
 class User {
   User({
-    this.id,
+    required this.email, this.id,
     this.fullName,
     this.userName,
-    required this.email,
     this.password,
     this.gender = GenderE.preferNotToSay,
     this.birthday,

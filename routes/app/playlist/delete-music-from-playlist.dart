@@ -31,7 +31,7 @@ Future<Response> onRequest(RequestContext context) async {
     final playlistId = body['playlistId'] as int;
     final musicId = body['musicId'] as int;
     await playlistController.deleteMusicFromPlaylist(
-        jwtUser.id!, playlistId, musicId);
+        jwtUser.id!, playlistId, musicId,);
     return AppResponse().success(HttpStatus.ok);
   } catch (e) {
     if (e is CustomHttpException) {

@@ -13,16 +13,16 @@ import '../../file/interface/file.interface.dart';
 import '../interface/generate_image_playlist_interface.dart';
 
 
-class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
-  final IFileService _fileService;
-
-  static const int _requiredImagesCount = 4;
-  static const int _imageSize = 300;
-  static const int _gridItemSize = 150; 
+class PlaylistImageGeneratorService implements IPlaylistImageGenerator { 
 
   PlaylistImageGeneratorService({
     required IFileService fileService,
   }) : _fileService = fileService;
+  final IFileService _fileService;
+
+  static const int _requiredImagesCount = 4;
+  static const int _imageSize = 300;
+  static const int _gridItemSize = 150;
 
   @override
   Future<String> generatePlaylistImage(List<Music> musicList) async {
@@ -35,7 +35,7 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
     } catch (e) {
       throw const CustomHttpException(
           ErrorMessage.GENERATE_IMAGE_PLAYLIST_FAILED,
-          HttpStatus.internalServerError);
+          HttpStatus.internalServerError,);
     }
   }
 
@@ -44,7 +44,7 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
     final imageUrls = _extractValidImageUrls(musicList);
 
     if (imageUrls.isEmpty) {
-      return await _generateBlankImage();
+      return _generateBlankImage();
     } else if (imageUrls.length < _requiredImagesCount) {
       // Trả về đường dẫn tạm chứa ảnh đã tải về từ URL đầu tiên
       final tempDir = Directory.systemTemp;
@@ -53,7 +53,7 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
       return imagePath;
     }
 
-    return await _combineImages(imageUrls.take(_requiredImagesCount).toList());
+    return _combineImages(imageUrls.take(_requiredImagesCount).toList());
   }
 
   /// Trích xuất các URL ảnh hợp lệ từ danh sách bài hát
@@ -72,7 +72,7 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
     final blankImagePath = path.join(tempDir.path, 'blank_playlist_cover.png');
 
     await _fileService.createBlankImage(
-        path: blankImagePath, width: _imageSize, height: _imageSize);
+        path: blankImagePath, width: _imageSize, height: _imageSize,);
 
     return blankImagePath;
   }
@@ -81,10 +81,10 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
   Future<String> _combineImages(List<String> imageUrls) async {
     try {
       final tempDir = Directory.systemTemp;
-      final List<String> downloadedImagePaths = [];
+      final downloadedImagePaths = <String>[];
 
       // Tải từng ảnh về file tạm
-      for (int i = 0; i < imageUrls.length; i++) {
+      for (var i = 0; i < imageUrls.length; i++) {
         final imagePath = path.join(tempDir.path, 'track_image_$i.jpg');
         await _downloadImage(imageUrls[i], imagePath);
         downloadedImagePaths.add(imagePath);
@@ -101,7 +101,7 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
     } catch (e) {
       throw const CustomHttpException(
           ErrorMessage.GENERATE_IMAGE_PLAYLIST_FAILED,
-          HttpStatus.internalServerError);
+          HttpStatus.internalServerError,);
     }
   }
 
@@ -114,7 +114,7 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
 
       if (response.statusCode != 200) {
         throw const CustomHttpException(
-            ErrorMessage.DOWNLOAD_IMAGE_FAILED, HttpStatus.badRequest);
+            ErrorMessage.DOWNLOAD_IMAGE_FAILED, HttpStatus.badRequest,);
       }
 
       final bytes = await _consolidateHttpClientResponseBytes(response);
@@ -126,9 +126,9 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
 
   /// Đọc toàn bộ dữ liệu từ HttpClientResponse
   Future<Uint8List> _consolidateHttpClientResponseBytes(
-      HttpClientResponse response) async {
-    final List<List<int>> chunks = [];
-    int contentLength = 0;
+      HttpClientResponse response,) async {
+    final chunks = <List<int>>[];
+    var contentLength = 0;
 
     await for (final chunk in response) {
       chunks.add(chunk);
@@ -139,9 +139,9 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
       return Uint8List(0);
     }
 
-    final Uint8List bytes = Uint8List(contentLength);
-    int offset = 0;
-    for (final List<int> chunk in chunks) {
+    final bytes = Uint8List(contentLength);
+    var offset = 0;
+    for (final chunk in chunks) {
       bytes.setRange(offset, offset + chunk.length, chunk);
       offset += chunk.length;
     }
@@ -155,14 +155,14 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
     final outputPath = path.join(tempDir.path, 'combined_playlist_cover.png');
 
     // Tải tất cả ảnh
-    final List<img.Image> images = [];
+    final images = <img.Image>[];
     for (final path in imagePaths) {
       final imageBytes = await _fileService.readBytes(path);
       final decodedImage = img.decodeImage(imageBytes);
       if (decodedImage != null) {
         // Thay đổi kích thước mỗi ảnh thành một nửa kích thước cuối cùng
         images.add(img.copyResize(decodedImage,
-            width: _gridItemSize, height: _gridItemSize));
+            width: _gridItemSize, height: _gridItemSize,),);
       }
     }
 
@@ -174,12 +174,12 @@ class PlaylistImageGeneratorService implements IPlaylistImageGenerator {
       [0, 0],
       [_gridItemSize, 0],
       [0, _gridItemSize],
-      [_gridItemSize, _gridItemSize]
+      [_gridItemSize, _gridItemSize],
     ];
 
-    for (int i = 0; i < images.length && i < positions.length; i++) {
+    for (var i = 0; i < images.length && i < positions.length; i++) {
       img.compositeImage(combinedImage, images[i],
-          dstX: positions[i][0], dstY: positions[i][1]);
+          dstX: positions[i][0], dstY: positions[i][1],);
     }
 
     // Lưu ảnh kết hợp

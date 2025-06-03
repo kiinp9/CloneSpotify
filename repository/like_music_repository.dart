@@ -14,8 +14,8 @@ abstract class ILikeMusicRepo {
 }
 
 class LikeMusicRepository implements ILikeMusicRepo {
-  final Database _db;
   LikeMusicRepository(this._db);
+  final Database _db;
 
   @override
   Future<LikeMusic?> addMusicToLikeMusic(int userId, int musicId) async {
@@ -44,24 +44,25 @@ RETURNING id, userId, musicId, createdAt, updatedAt
       final row = result.first;
 
       final likeMusic = LikeMusic(
-        id: row[0] as int,
-        userId: row[1] as int,
-        musicId: row[2] as int,
-        createdAt: row[3] as DateTime,
-        updatedAt: row[4] as DateTime,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        musicId: row[2]! as int,
+        createdAt: row[3]! as DateTime,
+        updatedAt: row[4]! as DateTime,
       );
 
       return likeMusic;
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<List<Map<String, dynamic>>> getMusicFromLikeMusic(int userId) async {
     try {
       final result = await _db.executor.execute(
@@ -83,12 +84,12 @@ RETURNING id, userId, musicId, createdAt, updatedAt
         },
       );
       if (result.isEmpty) return [];
-      final Map<int, Map<String, dynamic>> grouped = {};
-      for (var row in result) {
-        final musicId = row[0] as int;
-        final title = row[1] as String;
-        final imageUrl = row[2] as String;
-        final authorName = row[3] as String;
+      final grouped = <int, Map<String, dynamic>>{};
+      for (final row in result) {
+        final musicId = row[0]! as int;
+        final title = row[1]! as String;
+        final imageUrl = row[2]! as String;
+        final authorName = row[3]! as String;
 
         grouped.putIfAbsent(
           musicId,
@@ -107,15 +108,15 @@ RETURNING id, userId, musicId, createdAt, updatedAt
                 'id': entry['musicId'],
                 'title': entry['title'],
                 'imageUrl': entry['imageUrl'],
-                'authors': (entry['authors'] as List<String>).join(', ')
-              })
+                'authors': (entry['authors'] as List<String>).join(', '),
+              },)
           .toList();
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
       }
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -142,11 +143,11 @@ RETURNING id, userId, musicId, createdAt, updatedAt
 
       final row = music.first;
       final likeMusic = LikeMusic(
-        id: row[0] as int,
-        userId: row[1] as int,
-        musicId: row[2] as int,
-        createdAt: row[3] as DateTime,
-        updatedAt: row[4] as DateTime,
+        id: row[0]! as int,
+        userId: row[1]! as int,
+        musicId: row[2]! as int,
+        createdAt: row[3]! as DateTime,
+        updatedAt: row[4]! as DateTime,
       );
 
       await _db.executor.execute(
@@ -163,7 +164,7 @@ RETURNING id, userId, musicId, createdAt, updatedAt
     } catch (e) {
       if (e is CustomHttpException) rethrow;
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

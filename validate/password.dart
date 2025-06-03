@@ -14,7 +14,7 @@ bool isValidPassword(String? pass) {
 
 bool isStrongPassword(String? pass) {
   final regex = RegExp(
-      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$');
+      r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$',);
 
   if (!regex.hasMatch(pass!)) {
     return false;

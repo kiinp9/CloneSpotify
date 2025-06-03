@@ -1,13 +1,14 @@
 import 'dart:io';
-import 'package:dart_frog/dart_frog.dart';
-import '../../../constant/config.message.dart';
-import '../../../exception/config.exception.dart';
-import '../../../model/response.dart';
-import '../../../controllers/music_controller.dart';
 
-import '../../../model/music.dart';
+import 'package:dart_frog/dart_frog.dart';
+
+import '../../../constant/config.message.dart';
+import '../../../controllers/music_controller.dart';
+import '../../../exception/config.exception.dart';
 import '../../../model/author.dart';
 import '../../../model/category.dart';
+import '../../../model/music.dart';
+import '../../../model/response.dart';
 import '../../../model/users.dart';
 
 Future<Response> onRequest(RequestContext context) async {
@@ -48,7 +49,7 @@ Future<Response> onRequest(RequestContext context) async {
         .map((categoryData) => Category(
               name: categoryData['name'].toString(),
               description: categoryData['description'].toString(),
-            ))
+            ),)
         .toList();
 
     await musicController.uploadMusic(

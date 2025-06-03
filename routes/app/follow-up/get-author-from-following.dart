@@ -14,7 +14,7 @@ Future<Response> onRequest(RequestContext context) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
   final jwtUser = context.read<User?>();
-  final _followAuthorController = context.read<FollowAuthorController>();
+  final followAuthorController = context.read<FollowAuthorController>();
   final userController = context.read<UserController>();
   if (jwtUser == null) {
     return AppResponse()
@@ -32,7 +32,7 @@ Future<Response> onRequest(RequestContext context) async {
       return AppResponse()
           .error(HttpStatus.notFound, ErrorMessage.USER_NOT_FOUND);
     }
-    final result = await _followAuthorController
+    final result = await followAuthorController
         .getAuthorFromFollowAuthor(jwtUser.id!, offset: offset, limit: limit);
     return AppResponse().ok(HttpStatus.ok, {'author': result});
   } catch (e) {

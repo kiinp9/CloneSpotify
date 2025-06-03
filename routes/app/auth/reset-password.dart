@@ -33,7 +33,7 @@ Future<Response> onRequest(RequestContext context) async {
     final checkOtp = userData?['checkOtp'];
 
     if (userData == null || !(checkOtp == true || checkOtp == 'true')) {
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessage.TOKEN_INVALID,
         HttpStatus.unauthorized,
       );
@@ -83,6 +83,6 @@ Future<Response> onRequest(RequestContext context) async {
       return AppResponse().error(e.statusCode, e.message);
     }
     return AppResponse()
-        .error(HttpStatus.internalServerError, 'Lỗi máy chủ: ${e.toString()}');
+        .error(HttpStatus.internalServerError, 'Lỗi máy chủ: $e');
   }
 }

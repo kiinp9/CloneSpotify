@@ -13,23 +13,23 @@ class CategoryController {
   Future<int?> createCategory(Category category, String imagePath) async {
     try {
       if (isNullOrEmpty(category.name)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_CATEGORY_NAME, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_CATEGORY_NAME, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(category.description)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_CATEGORY_DESCRIPTION, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_CATEGORY_DESCRIPTION, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(category.imageUrl)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_CATEGORY_IMAGE_PATH, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_CATEGORY_IMAGE_PATH, HttpStatus.badRequest,);
       }
 
-      final int? categoryId =
+      final categoryId =
           await _categoryRepository.createCategory(category, imagePath);
       if (categoryId == null) {
         throw const CustomHttpException(
-            ErrorMessage.SAVED_DB_FAIL, HttpStatus.internalServerError);
+            ErrorMessage.SAVED_DB_FAIL, HttpStatus.internalServerError,);
       }
       return categoryId;
     } catch (e) {
@@ -37,7 +37,7 @@ class CategoryController {
         return Future.error(e);
       }
       return Future.error(CustomHttpException(
-          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
     }
   }
 
@@ -47,7 +47,7 @@ class CategoryController {
   }
 
   Future<Category> updateCategory(
-      int categoryId, Map<String, dynamic> updateFields) async {
+      int categoryId, Map<String, dynamic> updateFields,) async {
     final result =
         await _categoryRepository.updateCategory(categoryId, updateFields);
     return result;

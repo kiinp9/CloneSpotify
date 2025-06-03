@@ -33,7 +33,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
           .error(HttpStatus.notFound, ErrorMessage.USER_NOT_FOUND);
     }
     final body = await context.request.json() as Map<String, dynamic>;
-    final Map<String, dynamic> updateFields = {};
+    final updateFields = <String, dynamic>{};
 
     if (body.containsKey('name')) {
       updateFields['name'] = body['name'].toString();
@@ -46,7 +46,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
           .error(HttpStatus.badRequest, ErrorMessage.EMPTY_FIELD);
     }
     final result = await playlistController.updatePlaylist(
-        jwtUser.id!, playlistId, updateFields);
+        jwtUser.id!, playlistId, updateFields,);
     return AppResponse().ok(HttpStatus.ok, result.toJson());
   } catch (e) {
     if (e is CustomHttpException) {

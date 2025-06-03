@@ -4,9 +4,9 @@ import '../model/playlist.dart';
 import '../repository/playlist_repository.dart';
 
 class PlaylistController {
-  final PlaylistRepository _playlistRepository;
 
   PlaylistController(this._playlistRepository, this._redisService);
+  final PlaylistRepository _playlistRepository;
   final IRedisService _redisService;
 
   Future<int?> createPlaylist(Playlist playlist) async {
@@ -21,14 +21,14 @@ class PlaylistController {
   }
 
   Future<Playlist> deleteMusicFromPlaylist(
-      int userId, int playlistId, int musicId) async {
+      int userId, int playlistId, int musicId,) async {
     final result = await _playlistRepository.deleteMusicFromPlaylist(
-        userId, playlistId, musicId);
+        userId, playlistId, musicId,);
     return result;
   }
 
   Future<List<Map<String, dynamic>>> getMusicByPlaylistId(
-      int userId, int playlistId) async {
+      int userId, int playlistId,) async {
     final result =
         await _playlistRepository.getMusicByPlaylistId(userId, playlistId);
     return result;
@@ -40,9 +40,9 @@ class PlaylistController {
   }
 
   Future<Playlist> updatePlaylist(
-      int userId, int playlistId, Map<String, dynamic> updateFields) async {
+      int userId, int playlistId, Map<String, dynamic> updateFields,) async {
     final result = await _playlistRepository.updatePlaylist(
-        userId, playlistId, updateFields);
+        userId, playlistId, updateFields,);
     return result;
   }
 
@@ -52,14 +52,14 @@ class PlaylistController {
   }
 
   Future<Music> playMusicInPlayList(
-      int userId, int playlistId, int musicId) async {
+      int userId, int playlistId, int musicId,) async {
     final result = await _playlistRepository.playMusicInPlayList(
-        userId, playlistId, musicId);
+        userId, playlistId, musicId,);
     return result;
   }
 
   Future<Music?> nextMusic(
-      int currentMusicId, int userId, int playlistId) async {
+      int currentMusicId, int userId, int playlistId,) async {
     final result =
         await _playlistRepository.nextMusic(currentMusicId, userId, playlistId);
     return result;

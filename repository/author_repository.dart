@@ -1,13 +1,14 @@
 import 'dart:io';
+
 import 'package:postgres/postgres.dart';
 
+import '../constant/config.message.dart';
 import '../database/postgres.dart';
+import '../exception/config.exception.dart';
 import '../libs/cloudinary/service/upload-avatarAuthor.dart';
 import '../model/album.dart';
 import '../model/author.dart';
 import '../model/music.dart';
-import '../exception/config.exception.dart';
-import '../constant/config.message.dart';
 
 abstract class IAuthorRepo {
   Future<Author?> findAuthorById(int id);
@@ -36,16 +37,16 @@ class AuthorRepository implements IAuthorRepo {
 
       if (authorResult.isEmpty || authorResult.first.isEmpty) {
         throw const CustomHttpException(
-            ErrorMessage.AUTHOR_NOT_FOUND, HttpStatus.notFound);
+            ErrorMessage.AUTHOR_NOT_FOUND, HttpStatus.notFound,);
       }
 
       final authorRow = authorResult.first;
       final author = Author(
-        id: authorRow[0] as int,
-        name: authorRow[1] as String,
-        description: authorRow[2] as String,
+        id: authorRow[0]! as int,
+        name: authorRow[1]! as String,
+        description: authorRow[2]! as String,
         avatarUrl: authorRow[3] as String?,
-        followingCount: authorRow[4] as int,
+        followingCount: authorRow[4]! as int,
         createdAt: _parseDate(authorRow[5]),
         updatedAt: _parseDate(authorRow[6]),
       );
@@ -68,14 +69,14 @@ SELECT al.id,
       );
       author.albums = albumResult.map((albumRow) {
         return Album(
-          id: albumRow[0] as int,
-          albumTitle: albumRow[1] as String,
-          description: albumRow[2] as String,
-          linkUrlImageAlbum: albumRow[3] as String,
+          id: albumRow[0]! as int,
+          albumTitle: albumRow[1]! as String,
+          description: albumRow[2]! as String,
+          linkUrlImageAlbum: albumRow[3]! as String,
           createdAt: _parseDate(albumRow[4]),
           updatedAt: _parseDate(albumRow[5]),
           nation: albumRow[6] as String? ?? '',
-          listenCountAlbum: albumRow[7] as int,
+          listenCountAlbum: albumRow[7]! as int,
         );
       }).toList();
       final musicResult = await _db.executor.execute(
@@ -91,16 +92,16 @@ SELECT al.id,
 
       author.musics = musicResult.map((musicRow) {
         return Music(
-          id: musicRow[0] as int,
-          title: musicRow[1] as String,
-          description: musicRow[2] as String,
-          broadcastTime: musicRow[3] as int,
-          linkUrlMusic: musicRow[4] as String,
+          id: musicRow[0]! as int,
+          title: musicRow[1]! as String,
+          description: musicRow[2]! as String,
+          broadcastTime: musicRow[3]! as int,
+          linkUrlMusic: musicRow[4]! as String,
           createdAt: _parseDate(musicRow[5]),
           updatedAt: _parseDate(musicRow[6]),
-          imageUrl: musicRow[7] as String,
+          imageUrl: musicRow[7]! as String,
           nation: musicRow[8] as String? ?? '',
-          listenCount: musicRow[9] as int,
+          listenCount: musicRow[9]! as int,
         );
       }).toList();
 
@@ -109,13 +110,14 @@ SELECT al.id,
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
     }
   }
 
+  @override
   Future<Author?> findAuthorByName(String name) async {
     try {
       final authorResult = await _db.executor.execute(
@@ -136,11 +138,11 @@ SELECT al.id,
 
       final row = authorResult.first;
       final author = Author(
-        id: row[0] as int,
-        name: row[1] as String,
-        description: row[2] as String,
+        id: row[0]! as int,
+        name: row[1]! as String,
+        description: row[2]! as String,
         avatarUrl: row[3] as String?,
-        followingCount: row[4] as int,
+        followingCount: row[4]! as int,
         createdAt: _parseDate(row[5]),
         updatedAt: _parseDate(row[6]),
       );
@@ -158,14 +160,14 @@ SELECT al.id,
 
       author.albums = albumResult.map((albumRow) {
         return Album(
-          id: albumRow[0] as int,
-          albumTitle: albumRow[1] as String,
-          description: albumRow[2] as String,
-          linkUrlImageAlbum: albumRow[3] as String,
+          id: albumRow[0]! as int,
+          albumTitle: albumRow[1]! as String,
+          description: albumRow[2]! as String,
+          linkUrlImageAlbum: albumRow[3]! as String,
           createdAt: _parseDate(albumRow[4]),
           updatedAt: _parseDate(albumRow[5]),
           nation: albumRow[6] as String? ?? '',
-          listenCountAlbum: albumRow[7] as int,
+          listenCountAlbum: albumRow[7]! as int,
         );
       }).toList();
 
@@ -182,16 +184,16 @@ SELECT al.id,
 
       author.musics = musicResult.map((musicRow) {
         return Music(
-          id: musicRow[0] as int,
-          title: musicRow[1] as String,
-          description: musicRow[2] as String,
-          broadcastTime: musicRow[3] as int,
-          linkUrlMusic: musicRow[4] as String,
+          id: musicRow[0]! as int,
+          title: musicRow[1]! as String,
+          description: musicRow[2]! as String,
+          broadcastTime: musicRow[3]! as int,
+          linkUrlMusic: musicRow[4]! as String,
           createdAt: _parseDate(musicRow[5]),
           updatedAt: _parseDate(musicRow[6]),
-          imageUrl: musicRow[7] as String,
+          imageUrl: musicRow[7]! as String,
           nation: musicRow[8] as String? ?? '',
-          listenCount: musicRow[9] as int,
+          listenCount: musicRow[9]! as int,
         );
       }).toList();
 
@@ -200,7 +202,7 @@ SELECT al.id,
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -219,18 +221,18 @@ OFFSET @offset
 '''), parameters: {
         'limit': limit,
         'offset': offset,
-      });
+      },);
 
       if (authorResult.isEmpty) {
         return [];
       }
-      final List<Author> authors = [];
+      final authors = <Author>[];
 
       for (final row in authorResult) {
         final author = Author(
-          id: row[0] as int,
-          name: row[1] as String,
-          avatarUrl: row[2] as String,
+          id: row[0]! as int,
+          name: row[1]! as String,
+          avatarUrl: row[2]! as String,
         );
 
         authors.add(author);
@@ -240,7 +242,7 @@ OFFSET @offset
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );
@@ -250,7 +252,7 @@ OFFSET @offset
   @override
   Future<int?> createAuthor(Author author, String avatarPath) async {
     try {
-      String? avatarUrl =
+      final avatarUrl =
           await _uploadAvatarAuthorService.uploadAvatarAuthor(avatarPath);
       final result = await _db.executor.execute(
         Sql.named('''
@@ -273,13 +275,13 @@ OFFSET @offset
           HttpStatus.internalServerError,
         );
       }
-      final authorId = result.first[0] as int;
+      final authorId = result.first[0]! as int;
       return authorId;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
       }
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

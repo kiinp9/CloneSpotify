@@ -11,12 +11,12 @@ class GoogleSecurity {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
-        String email = data['email']?.toString() ?? '';
-        String name = data['name']?.toString().trim() ?? '';
+        final email = data['email']?.toString() ?? '';
+        var name = data['name']?.toString().trim() ?? '';
 
         if (name.isEmpty) {
-          String givenName = data['given_name']?.toString().trim() ?? '';
-          String familyName = data['family_name']?.toString().trim() ?? '';
+          final givenName = data['given_name']?.toString().trim() ?? '';
+          final familyName = data['family_name']?.toString().trim() ?? '';
           name = '$givenName $familyName'.trim();
         }
 

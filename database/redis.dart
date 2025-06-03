@@ -16,17 +16,17 @@ class RedisService implements IRedisService {
     try {
       await _connect();
       _initialized = true;
-      print("✅ Kết nối Redis thành công!");
+      print('✅ Kết nối Redis thành công!');
     } catch (e) {
-      throw Exception("Không thể kết nối Redis: $e");
+      throw Exception('Không thể kết nối Redis: $e');
     }
   }
 
   Future<void> _connect() async {
     final env = DotEnv()..load();
-    final String redisHost = env['REDIS_HOST'] ?? 'localhost';
-    final int redisPort = int.tryParse(env['REDIS_PORT'] ?? '') ?? 6379;
-    final String? redisPassword = env['REDIS_PASSWORD'];
+    final redisHost = env['REDIS_HOST'] ?? 'localhost';
+    final redisPort = int.tryParse(env['REDIS_PORT'] ?? '') ?? 6379;
+    final redisPassword = env['REDIS_PASSWORD'];
 
     _connection = RedisConnection();
     _command = await _connection!.connect(redisHost, redisPort);
@@ -47,13 +47,13 @@ class RedisService implements IRedisService {
     try {
       await _command!.send_object(['PING']);
     } catch (e) {
-      print("⚠️ Mất kết nối Redis, đang thử kết nối lại...");
+      print('⚠️ Mất kết nối Redis, đang thử kết nối lại...');
       await _connect();
     }
   }
 
   Future<void> setValue(String key, String value,
-      {int expirySeconds = 180}) async {
+      {int expirySeconds = 180,}) async {
     await _checkConnection();
     await _command!.send_object(['SET', key, value, 'EX', expirySeconds]);
   }
@@ -75,18 +75,21 @@ class RedisService implements IRedisService {
         .send_object(['SET', 'tokenVersion:$userId', version.toString()]);
   }
 
+  @override
   Future<int?> getTokenVersion(int userId) async {
     await _checkConnection();
     final result = await _command!.send_object(['GET', 'tokenVersion:$userId']);
     return result != null ? int.tryParse(result.toString()) : null;
   }
 
+  @override
   Future<void> invalidateToken(int userId) async {
     await _checkConnection();
     final currentVersion = await getTokenVersion(userId) ?? 0;
     await setTokenVersion(userId, currentVersion + 1);
   }
 
+  @override
   Future<void> setPlayMusicHistory(int userId, String musicId) async {
     await _checkConnection();
     final historyKey = 'user:$userId:music';
@@ -110,6 +113,7 @@ class RedisService implements IRedisService {
     await _command!.send_object(['EXPIRE', currentKey, 7200]);
   }
 
+  @override
   Future<List<String>> getPlayMusicHistory(int userId) async {
     await _checkConnection();
     final key = 'user:$userId:music';
@@ -119,17 +123,19 @@ class RedisService implements IRedisService {
     return (result as List).map((e) => e.toString()).toList();
   }
 
+  @override
   Future<void> playNextMusic(int userId, String nextMusicId) async {
     await setPlayMusicHistory(userId, nextMusicId);
   }
 
+  @override
   Future<String?> rewindMusic(int userId, int currentMusicId) async {
     await _checkConnection();
     final historyKey = 'user:$userId:music';
     final currentKey = 'user:$userId:music:current';
 
     final result = await _command!.send_object(['LRANGE', historyKey, 0, -1]);
-    final List<String> history =
+    final history =
         (result as List).map((e) => e.toString()).toList();
 
     final index = history.indexOf(currentMusicId.toString());
@@ -143,6 +149,7 @@ class RedisService implements IRedisService {
     return previousId;
   }
 
+  @override
   Future<void> deleteHistory(int userId) async {
     await _checkConnection();
     final key = 'user:$userId:music';

@@ -26,7 +26,7 @@ class HistoryController {
   }
 
   Future<HistoryAuthor> addAuthorToHistoryAuthor(
-      int userId, int authorId) async {
+      int userId, int authorId,) async {
     final result =
         await _historyRepository.addAuthorToHistoryAuthor(userId, authorId);
     return result;

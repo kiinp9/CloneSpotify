@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import '../constant/config.message.dart';
 import '../database/iredis.dart';
 import '../exception/config.exception.dart';
@@ -5,9 +8,6 @@ import '../model/author.dart';
 import '../model/category.dart';
 import '../model/music.dart';
 import '../repository/music_repository.dart';
-import 'dart:async';
-import 'dart:io';
-
 import '../validate/strings.dart';
 
 class MusicController {
@@ -25,47 +25,47 @@ class MusicController {
   ) async {
     try {
       if (isNullOrEmpty(music.title)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_TITLE, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_TITLE, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(music.description)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_DESCRIPTION, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_DESCRIPTION, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(author.name)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_AUTHOR_NAME, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_AUTHOR_NAME, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(author.description)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_AUTHOR_DESC, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_AUTHOR_DESC, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(author.avatarUrl)) {
-        throw CustomHttpException(
-            ErrorMessage.EMPTY_AUTHOR_AVATAR, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.EMPTY_AUTHOR_AVATAR, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(musicFilePath)) {
-        throw CustomHttpException(
-            ErrorMessage.INVALID_MUSIC_PATH, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.INVALID_MUSIC_PATH, HttpStatus.badRequest,);
       }
       if (isNullOrEmpty(imageFilePath)) {
-        throw CustomHttpException(
-            ErrorMessage.INVALID_IMAGE_PATH, HttpStatus.badRequest);
+        throw const CustomHttpException(
+            ErrorMessage.INVALID_IMAGE_PATH, HttpStatus.badRequest,);
       }
 
       for (final category in categories) {
         if (isNullOrEmpty(category.name)) {
-          throw CustomHttpException(
-              ErrorMessage.EMPTY_CATEGORY_NAME, HttpStatus.badRequest);
+          throw const CustomHttpException(
+              ErrorMessage.EMPTY_CATEGORY_NAME, HttpStatus.badRequest,);
         }
         if (isNullOrEmpty(category.description)) {
-          throw CustomHttpException(
-              ErrorMessage.EMPTY_CATEGORY_DESCRIPTION, HttpStatus.badRequest);
+          throw const CustomHttpException(
+              ErrorMessage.EMPTY_CATEGORY_DESCRIPTION, HttpStatus.badRequest,);
         }
       }
 
       // Thực hiện upload nhạc và hình ảnh
-      final int? musicId = await _musicRepository.uploadMusic(
+      final musicId = await _musicRepository.uploadMusic(
         music,
         musicFilePath,
         imageFilePath,
@@ -75,7 +75,7 @@ class MusicController {
 
       if (musicId == null) {
         throw const CustomHttpException(
-            ErrorMessage.SAVED_DB_FAIL, HttpStatus.internalServerError);
+            ErrorMessage.SAVED_DB_FAIL, HttpStatus.internalServerError,);
       }
 
       return musicId;
@@ -84,7 +84,7 @@ class MusicController {
         return Future.error(e);
       }
       return Future.error(CustomHttpException(
-          "Lỗi máy chủ: ${e.toString()}", HttpStatus.internalServerError));
+          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
     }
   }
 
@@ -100,11 +100,11 @@ class MusicController {
   }
 
   Future<List<Music>> showMusicPaging({int offset = 0, int limit = 10}) async {
-    return await _musicRepository.showMusicPaging(offset: offset, limit: limit);
+    return _musicRepository.showMusicPaging(offset: offset, limit: limit);
   }
 
   Future<List<Music>> showMusicByCategory(int categoryId) async {
-    return await _musicRepository.showMusicByCategory(categoryId);
+    return _musicRepository.showMusicByCategory(categoryId);
   }
 
   Future<Music?> nextMusic(int currentMusicId) async {
@@ -139,7 +139,7 @@ class MusicController {
   }
 
   Future<Music> updateMusic(
-      int musicId, Map<String, dynamic> updateFields) async {
+      int musicId, Map<String, dynamic> updateFields,) async {
     final music = await _musicRepository.updateMusic(musicId, updateFields);
     return music;
   }

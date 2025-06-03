@@ -1,8 +1,6 @@
 class HistoryAuthor {
   HistoryAuthor({
-    this.id,
-    required this.userId,
-    required this.authorId,
+    required this.userId, required this.authorId, this.id,
     this.createdAt,
   });
   int? id;

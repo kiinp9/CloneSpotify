@@ -1,9 +1,6 @@
 class HistoryAlbum {
   HistoryAlbum({
-    this.id,
-    required this.userId,
-    required this.albumId,
-    required this.musicId,
+    required this.userId, required this.albumId, required this.musicId, this.id,
     this.createdAt,
   });
   int? id;

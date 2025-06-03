@@ -4,16 +4,15 @@ import '../config/jwt.config.dart';
 import '../constant/config.message.dart';
 import '../database/iredis.dart';
 import '../exception/config.exception.dart';
-import '../exception/exception.dart';
 import '../model/users.dart';
 
 class JwtService {
-  final IRedisService redisService;
 
   JwtService(this.redisService);
+  final IRedisService redisService;
 
   Future<String> generateTokenJwt(User user) async {
-    final int tokenVersion =
+    final tokenVersion =
         (await redisService.getTokenVersion(user.id ?? 0)) ?? 0;
 
     final jwt = JWT(
@@ -45,7 +44,7 @@ class JwtService {
       };
     } catch (e) {
       throw const CustomHttpException(
-          ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+          ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError,);
     }
   }
 
@@ -54,7 +53,7 @@ class JwtService {
       JWT.verify(token, SecretKey(JwtConfig.secretKey));
     } catch (e) {
       throw const CustomHttpException(
-          ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError);
+          ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError,);
     }
   }
 }

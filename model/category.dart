@@ -21,7 +21,7 @@ class Category {
         'description': description,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
-        'imageUrl': imageUrl
+        'imageUrl': imageUrl,
       };
 
   @override

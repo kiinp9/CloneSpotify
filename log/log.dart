@@ -22,29 +22,29 @@ class AppLogger {
 
   static void logSeparator() {
     print(
-        "$green[Dart] - ${_getCurrentTimestamp()}     LOG *******************************************************************$reset");
+        '$green[Dart] - ${_getCurrentTimestamp()}     LOG *******************************************************************$reset',);
   }
 
   static void logInfo(String message) {
-    _logger.info("$green$message$reset");
+    _logger.info('$green$message$reset');
   }
 
   static void logRequest(
-      String method, String path, Map<String, dynamic> headers, String body) {
+      String method, String path, Map<String, dynamic> headers, String body,) {
     logSeparator();
 
-    _logger.info("$yellow[Request $method $path]$reset");
+    _logger.info('$yellow[Request $method $path]$reset');
 
-    logInfo("Headers: ${jsonEncode(headers)}");
-    logInfo("Body: ${jsonEncode(jsonDecode(body))}");
+    logInfo('Headers: ${jsonEncode(headers)}');
+    logInfo('Body: ${jsonEncode(jsonDecode(body))}');
   }
 
   static void logResponse(String method, String path, int statusCode,
-      dynamic response, Map<String, String> headers) {
-    _logger.info("$yellow[Response $method $path]$reset");
+      dynamic response, Map<String, String> headers,) {
+    _logger.info('$yellow[Response $method $path]$reset');
 
-    logInfo("Headers: ${jsonEncode(headers)}");
-    logInfo("Body: ${jsonEncode(response)}");
+    logInfo('Headers: ${jsonEncode(headers)}');
+    logInfo('Body: ${jsonEncode(response)}');
 
     logSeparator();
   }

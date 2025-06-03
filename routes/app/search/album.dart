@@ -27,7 +27,7 @@ Future<Response> onRequest(RequestContext context) async {
         'description': result?.description,
         'linkUrlImageAlbum': result?.linkUrlImageAlbum,
       },
-      'musics': result?.musics?.map((music) {
+      'musics': result?.musics.map((music) {
         return {
           'id': music.id,
           'title': music.title,
@@ -39,7 +39,7 @@ Future<Response> onRequest(RequestContext context) async {
           'imageUrl': music.imageUrl,
         };
       }).toList(),
-      'authors': result?.authors?.map((author) {
+      'authors': result?.authors.map((author) {
         return {
           'id': author.id,
           'name': author.name,
@@ -50,7 +50,7 @@ Future<Response> onRequest(RequestContext context) async {
           'updatedAt': author.updatedAt?.toIso8601String(),
         };
       }).toList(),
-      'categories': result?.categories?.map((category) {
+      'categories': result?.categories.map((category) {
         return {
           'id': category.id,
           'name': category.name,

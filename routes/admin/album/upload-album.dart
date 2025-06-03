@@ -45,7 +45,7 @@ Future<Response> onRequest(RequestContext context) async {
               title: m['title'].toString(),
               description: m['description'].toString(),
               nation: album.nation,
-            ))
+            ),)
         .toList();
 
     final author = Author(
@@ -58,11 +58,11 @@ Future<Response> onRequest(RequestContext context) async {
         .map((categoryData) => Category(
               name: categoryData['name'].toString(),
               description: categoryData['description'].toString(),
-            ))
+            ),)
         .toList();
 
     await albumController.uploadAlbum(
-        album, albumFolderPath, avatarPath, music, author, categories);
+        album, albumFolderPath, avatarPath, music, author, categories,);
 
     return AppResponse().success(HttpStatus.ok);
   } catch (e) {

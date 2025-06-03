@@ -26,7 +26,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
         'createdAt': result?.createdAt?.toIso8601String(),
         'updatedAt': result?.updatedAt?.toIso8601String(),
       },
-      'albums': result?.albums?.map((album) {
+      'albums': result?.albums.map((album) {
         return {
           'id': album.id,
           'albumTitle': album.albumTitle,
@@ -38,7 +38,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
           'nation': album.nation,
         };
       }).toList(),
-      'music': result?.musics?.map((music) {
+      'music': result?.musics.map((music) {
         return {
           'id': music.id,
           'title': music.title,

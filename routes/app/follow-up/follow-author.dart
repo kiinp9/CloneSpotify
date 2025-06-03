@@ -15,7 +15,7 @@ Future<Response> onRequest(RequestContext context) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
   final jwtUser = context.read<User?>();
-  final _followAuthorController = context.read<FollowAuthorController>();
+  final followAuthorController = context.read<FollowAuthorController>();
   final userController = context.read<UserController>();
   if (jwtUser == null) {
     return AppResponse()
@@ -29,7 +29,7 @@ Future<Response> onRequest(RequestContext context) async {
     }
     final body = await context.request.json();
     final authorId = body['authorId'] as int;
-    await _followAuthorController.followAuthor(jwtUser.id!, authorId);
+    await followAuthorController.followAuthor(jwtUser.id!, authorId);
     return AppResponse().success(HttpStatus.ok);
   } catch (e) {
     if (e is CustomHttpException) {

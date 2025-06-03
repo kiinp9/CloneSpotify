@@ -1,10 +1,12 @@
 import 'dart:io';
+
 import 'package:dart_frog/dart_frog.dart';
+
 import '../../../constant/config.message.dart';
+import '../../../database/iredis.dart';
 import '../../../exception/config.exception.dart';
 import '../../../model/response.dart';
 import '../../../model/users.dart';
-import '../../../database/iredis.dart';
 
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method.value != 'POST') {

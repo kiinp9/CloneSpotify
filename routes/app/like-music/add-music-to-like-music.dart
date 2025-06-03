@@ -15,7 +15,7 @@ Future<Response> onRequest(RequestContext context) async {
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
   final jwtUser = context.read<User?>();
-  final _likeMusicController = context.read<LikeMusicController>();
+  final likeMusicController = context.read<LikeMusicController>();
   final userController = context.read<UserController>();
   if (jwtUser == null) {
     return AppResponse()
@@ -30,7 +30,7 @@ Future<Response> onRequest(RequestContext context) async {
     }
     final body = await context.request.json();
     final musicId = body['musicId'] as int;
-    await _likeMusicController.addMusicToLikeMusic(jwtUser.id!, musicId);
+    await likeMusicController.addMusicToLikeMusic(jwtUser.id!, musicId);
 
     return AppResponse().success(HttpStatus.ok);
   } catch (e) {

@@ -14,7 +14,7 @@ Future<Response> onRequest(RequestContext context) async {
   }
 
   try {
-    final _searchController = context.read<SearchController>();
+    final searchController = context.read<SearchController>();
     final body = await context.request.json();
 
     final query = body['query'] as String?;
@@ -24,7 +24,7 @@ Future<Response> onRequest(RequestContext context) async {
           .error(HttpStatus.badRequest, ErrorMessage.MISSING_QUERY_PARAM);
     }
 
-    final searchResults = await _searchController.search(query);
+    final searchResults = await searchController.search(query);
 
     return AppResponse().ok(HttpStatus.ok, searchResults);
   } catch (e) {

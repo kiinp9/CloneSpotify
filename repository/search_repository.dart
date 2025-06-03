@@ -11,9 +11,9 @@ abstract class ISearchRepo {
 }
 
 class SearchRepository implements ISearchRepo {
-  final Database _db;
 
   SearchRepository(this._db);
+  final Database _db;
   @override
   Future<Map<String, dynamic>> search(String query) async {
     try {
@@ -69,33 +69,33 @@ LIMIT 50
         );
       }
 
-      final List<Map<String, dynamic>> searchResults = [];
+      final searchResults = <Map<String, dynamic>>[];
       for (var i = 0; i < result.length; i++) {
         final row = result[i];
 
         searchResults.add({
           'music': {
-            'id': row[0] as int,
-            'title': row[1] as String,
-            'description': row[2] as String,
-            'broadcastTime': row[3] as int,
-            'linkUrlMusic': row[4] as String,
+            'id': row[0]! as int,
+            'title': row[1]! as String,
+            'description': row[2]! as String,
+            'broadcastTime': row[3]! as int,
+            'linkUrlMusic': row[4]! as String,
             'createdAt': _parseDate(row[5])?.toIso8601String(),
             'updatedAt': _parseDate(row[6])?.toIso8601String(),
-            'imageUrl': row[7] as String,
-            'listenCount': row[8] as int,
+            'imageUrl': row[7]! as String,
+            'listenCount': row[8]! as int,
             'nation': row[9] as String? ?? '',
           },
           'author': {
-            'id': row[10] as int,
-            'name': row[11] as String,
-            'description': row[12] as String,
+            'id': row[10]! as int,
+            'name': row[11]! as String,
+            'description': row[12]! as String,
             'avatarUrl': row[13] as String? ?? '',
           },
           'category': {
-            'id': row[14] as int,
-            'name': row[15] as String,
-            'description': row[16] as String,
+            'id': row[14]! as int,
+            'name': row[15]! as String,
+            'description': row[16]! as String,
             'imageUrl': row[17] as String? ?? '',
           },
           'album': {
@@ -112,7 +112,7 @@ LIMIT 50
         rethrow;
       }
 
-      throw CustomHttpException(
+      throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
       );

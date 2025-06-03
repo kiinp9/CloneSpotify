@@ -20,7 +20,7 @@ class UploadAvatarAuthorService extends IUploadAvatarAuthorService {
   late final String uploadPreset = env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
   @override
   Future<String?> uploadAvatarAuthor(String avatarPath) async {
-    final url = await uploadFile(avatarPath, "avatarAuthor");
+    final url = await uploadFile(avatarPath, 'avatarAuthor');
     return url;
   }
 
@@ -29,22 +29,22 @@ class UploadAvatarAuthorService extends IUploadAvatarAuthorService {
     final file = File(filePath);
     if (!file.existsSync()) {
       throw const CustomHttpException(
-          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest);
+          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest,);
     }
-    final url = Uri.parse("https://api.cloudinary.com/v1_1/$cloudName/upload");
-    final request = await http.MultipartRequest("POST", url)
-      ..fields["upload_preset"] = uploadPreset
-      ..fields["folder"] = folder
-      ..fields["api_key"] = apiKey
-      ..files.add(await http.MultipartFile.fromPath("file", file.path));
+    final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/upload');
+    final request = http.MultipartRequest('POST', url)
+      ..fields['upload_preset'] = uploadPreset
+      ..fields['folder'] = folder
+      ..fields['api_key'] = apiKey
+      ..files.add(await http.MultipartFile.fromPath('file', file.path));
     final response = await request.send();
     final responseBody = await response.stream.bytesToString();
     final data = jsonDecode(responseBody);
     if (response.statusCode == 200) {
-      return data["secure_url"] as String?;
+      return data['secure_url'] as String?;
     } else {
       throw const CustomHttpException(
-          ErrorMessage.UPLOAD_FAIL, HttpStatus.badRequest);
+          ErrorMessage.UPLOAD_FAIL, HttpStatus.badRequest,);
     }
   }
 }

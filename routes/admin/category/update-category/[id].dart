@@ -29,7 +29,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
   try {
     final body = await context.request.json() as Map<String, dynamic>;
 
-    final Map<String, dynamic> updateFields = {};
+    final updateFields = <String, dynamic>{};
 
     if (body.containsKey('name')) {
       updateFields['name'] = body['name'].toString();

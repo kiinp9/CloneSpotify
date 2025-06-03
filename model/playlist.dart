@@ -1,8 +1,6 @@
 class Playlist {
   Playlist({
-    this.id,
-    required this.userId,
-    required this.name,
+    required this.userId, required this.name, this.id,
     this.description,
     this.isPublic = false,
     this.imageUrl,

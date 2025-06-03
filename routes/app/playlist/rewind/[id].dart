@@ -14,7 +14,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     return AppResponse()
         .error(HttpStatus.methodNotAllowed, ErrorMessage.MSG_METHOD_NOT_ALLOW);
   }
-  final _playlistController = context.read<PlaylistController>();
+  final playlistController = context.read<PlaylistController>();
   final musicController = context.read<MusicController>();
   final user = context.read<User?>();
   if (user == null || user.id == null) {
@@ -34,7 +34,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
   }
   try {
     final rewindMusicId =
-        await _playlistController.rewindMusicFromHistory(user.id!, musicId);
+        await playlistController.rewindMusicFromHistory(user.id!, musicId);
     if (rewindMusicId == null) {
       return AppResponse()
           .error(HttpStatus.notFound, ErrorMessage.MUSIC_NOT_FOUND);
