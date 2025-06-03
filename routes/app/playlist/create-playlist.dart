@@ -36,7 +36,7 @@ Future<Response> onRequest(RequestContext context) async {
       description: 'playlist của ${user.userName}',
     );
 
-    final playlistId = await playlistController.createPlaylist(playlist);
+    await playlistController.createPlaylist(playlist);
 
     return AppResponse().success(
       HttpStatus.ok,

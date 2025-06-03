@@ -68,7 +68,7 @@ class PlaylistRepository implements IPlaylistRepo {
           'userId': playlist.userId,
           'name': playlist.name,
           'description': playlist.description ?? '',
-          'isPublic': playlist.isPublic ?? false,
+          'isPublic': playlist.isPublic,
           'imageUrl': imageUrl,
           'createdAt': now,
           'updatedAt': now,

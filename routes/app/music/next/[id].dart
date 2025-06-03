@@ -36,7 +36,7 @@ Future<Response> onRequest(RequestContext context, String id) async {
     await musicController.playNextMusic(user.id!, result.id.toString());
     await musicController.incrementListenCount(result.id!);
     await historyController.addMusicToHistory(user.id!, result.id!);
-    final authors = result.authors ?? [];
+    final authors = result.authors;
     for (final author in authors) {
       await historyController.addAuthorToHistoryAuthor(user.id!, author.id!);
     }

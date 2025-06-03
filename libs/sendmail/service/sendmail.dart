@@ -4,7 +4,6 @@ import 'package:mailer/smtp_server.dart';
 import '../template/mail.dart';
 
 class EmailService {
-
   EmailService() {
     final env = DotEnv()..load();
 
@@ -31,7 +30,7 @@ class EmailService {
       ..html = generateOtpEmailTemplate(otp);
 
     try {
-      final sendReport = await send(message, smtpServer);
+      await send(message, smtpServer);
     } catch (e) {}
   }
 }
