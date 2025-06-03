@@ -1,7 +1,15 @@
 include: package:very_good_analysis/analysis_options.5.1.0.yaml
+
 analyzer:
   exclude:
     - build/**
+    - .dart_tool/**
+    - lib/generated/**
+    - lib/**/*.g.dart
+    - test/.mocks/**
+    - coverage/**
+    - example/**
+
 linter:
   rules:
-    file_names: false
+    file_names: false # nếu bạn muốn tắt rule bắt tên file snake_case
