@@ -94,4 +94,5 @@ class ErrorMessage {
   static const String MISSING_QUERY_PARAM = 'query không được rỗng';
   static const String INVALID_AVATAR_AUTHOR =
       'Ảnh đại diện tác giả không hợp lệ';
+  static const String INVALID_AUTHOR_ID = 'authorId không tồn tại ';
 }

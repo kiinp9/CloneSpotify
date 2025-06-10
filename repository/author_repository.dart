@@ -15,6 +15,10 @@ abstract class IAuthorRepo {
   Future<Author?> findAuthorByName(String name);
   Future<List<Author>> showAuthorPaging({int offset = 0, int limit = 8});
   Future<int?> createAuthor(Author author, String avatarPath);
+  Future<Author?> updateAuthor(
+    int authorId,
+    Map<String, dynamic> updateFields,
+  );
 }
 
 class AuthorRepository implements IAuthorRepo {
@@ -37,7 +41,9 @@ class AuthorRepository implements IAuthorRepo {
 
       if (authorResult.isEmpty || authorResult.first.isEmpty) {
         throw const CustomHttpException(
-            ErrorMessage.AUTHOR_NOT_FOUND, HttpStatus.notFound,);
+          ErrorMessage.AUTHOR_NOT_FOUND,
+          HttpStatus.notFound,
+        );
       }
 
       final authorRow = authorResult.first;
@@ -212,16 +218,19 @@ SELECT al.id,
   @override
   Future<List<Author>> showAuthorPaging({int offset = 0, int limit = 8}) async {
     try {
-      final authorResult = await _db.executor.execute(Sql.named('''
+      final authorResult = await _db.executor.execute(
+        Sql.named('''
 SELECT id, name,avatarUrl
 FROM author
 ORDER BY RANDOM()
 LIMIT @limit
 OFFSET @offset
-'''), parameters: {
-        'limit': limit,
-        'offset': offset,
-      },);
+'''),
+        parameters: {
+          'limit': limit,
+          'offset': offset,
+        },
+      );
 
       if (authorResult.isEmpty) {
         return [];
@@ -277,6 +286,67 @@ OFFSET @offset
       }
       final authorId = result.first[0]! as int;
       return authorId;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw const CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<Author?> updateAuthor(
+    int authorId,
+    Map<String, dynamic> updateFields,
+  ) async {
+    try {
+      final setClauseParts = <String>[];
+      final parameters = <String, dynamic>{
+        'id': authorId,
+        'updatedAt': DateTime.now(),
+      };
+
+      if (updateFields.containsKey('name')) {
+        setClauseParts.add('name = @name');
+        parameters['name'] = updateFields['name'];
+      }
+      if (updateFields.containsKey('description')) {
+        setClauseParts.add('description = @description');
+        parameters['description'] = updateFields['description'];
+      }
+      setClauseParts.add('updatedAt = @updatedAt');
+      final setClause = setClauseParts.join(', ');
+      final query = '''
+UPDATE author
+SET $setClause
+WHERE id = @id
+RETURNING id,name,description,avatarUrl,createdAt,updatedAt,followingCount
+''';
+
+      final result = await _db.executor.execute(
+        Sql.named(query),
+        parameters: parameters,
+      );
+      if (result.isEmpty || result.first.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessageSQL.SQL_QUERY_ERROR,
+          HttpStatus.internalServerError,
+        );
+      }
+
+      final row = result.first;
+      return Author(
+        id: row[0]! as int,
+        name: row[1]! as String,
+        description: row[2]! as String,
+        avatarUrl: row[3] as String?,
+        followingCount: row[4]! as int,
+        createdAt: _parseDate(row[5]),
+        updatedAt: _parseDate(row[6]),
+      );
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;

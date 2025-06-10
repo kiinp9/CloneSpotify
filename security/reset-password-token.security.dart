@@ -38,7 +38,7 @@ Map<String, dynamic>? decodeResetToken(String token) {
     throw const CustomHttpException(
         ErrorMessage.TOKEN_INVALID, HttpStatus.internalServerError,);
   }
-}
+} 
 
 AppException? verifyResetToken(String token) {
   try {

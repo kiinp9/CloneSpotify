@@ -20,9 +20,17 @@ class AuthorController {
         await _authorRepository.showAuthorPaging(offset: offset, limit: limit);
     return author;
   }
+
   Future<int?> createAuthor(Author author, String avatarPath) async {
-    final authorId =
-        await _authorRepository.createAuthor(author, avatarPath);
+    final authorId = await _authorRepository.createAuthor(author, avatarPath);
     return authorId;
+  }
+
+  Future<Author?> updateAuthor(
+    int authorId,
+    Map<String, dynamic> updateFields,
+  ) async {
+    final author = await _authorRepository.updateAuthor(authorId, updateFields);
+    return author;
   }
 }
