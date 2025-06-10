@@ -19,6 +19,7 @@ abstract class IAuthorRepo {
     int authorId,
     Map<String, dynamic> updateFields,
   );
+  Future<Author> deleteAuthorById(int authorId);
 }
 
 class AuthorRepository implements IAuthorRepo {
@@ -347,6 +348,58 @@ RETURNING id,name,description,avatarUrl,createdAt,updatedAt,followingCount
         createdAt: _parseDate(row[5]),
         updatedAt: _parseDate(row[6]),
       );
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw const CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<Author> deleteAuthorById(int authorId) async {
+    try {
+      final author = await findAuthorById(authorId);
+      if (author == null) {
+        throw const CustomHttpException(
+            ErrorMessage.AUTHOR_NOT_FOUND, HttpStatus.notFound);
+      }
+
+      final musicAuthorCheck = await _db.executor.execute(
+        Sql.named(
+          'SELECT 1 FROM music_author WHERE authorId = @id LIMIT 1',
+        ),
+        parameters: {'id': authorId},
+      );
+      if (musicAuthorCheck.isNotEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.CANNOT_DELETE_AUTHOR_CASE_1,
+          HttpStatus.conflict,
+        );
+      }
+      final albumAuthorCheck = await _db.executor.execute(
+        Sql.named(
+          'SELECT * FROM album_author WHERE authorId = @id LIMIT 1',
+        ),
+        parameters: {'id': authorId},
+      );
+
+      if (albumAuthorCheck.isNotEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.CANNOT_DELETE_AUTHOR_CASE_2,
+          HttpStatus.conflict,
+        );
+      }
+
+      await _db.executor.execute(
+        Sql.named('DELETE FROM author WHERE id = @id'),
+        parameters: {'id': authorId},
+      );
+
+      return author;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;

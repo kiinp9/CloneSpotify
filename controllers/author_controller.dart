@@ -33,4 +33,9 @@ class AuthorController {
     final author = await _authorRepository.updateAuthor(authorId, updateFields);
     return author;
   }
+
+  Future<Author> deleteAuthorById(int authorId) async {
+    final author = await _authorRepository.deleteAuthorById(authorId);
+    return author;
+  }
 }

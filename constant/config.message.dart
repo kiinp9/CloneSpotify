@@ -95,4 +95,8 @@ class ErrorMessage {
   static const String INVALID_AVATAR_AUTHOR =
       'Ảnh đại diện tác giả không hợp lệ';
   static const String INVALID_AUTHOR_ID = 'authorId không tồn tại ';
+  static const String CANNOT_DELETE_AUTHOR_CASE_1 =
+      'Không thể xóa vì author đang được sử dụng trong bảng music_author.';
+  static const String CANNOT_DELETE_AUTHOR_CASE_2 =
+      'Không thể xóa vì author đang được sử dụng trong bảng album_author.';
 }
