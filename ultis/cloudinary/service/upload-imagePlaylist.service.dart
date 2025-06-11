@@ -19,7 +19,6 @@ class UploadImagePlaylistService implements IUploadImagePlaylistService {
   late final String apiKey = env['CLOUDINARY_API_KEY'] ?? '';
   late final String uploadPreset = env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
 
-
   @override
   Future<String?> uploadImagePlaylist(String imagePath) async {
     final url = await uploadFile(imagePath, 'imagePlaylist');
@@ -31,7 +30,9 @@ class UploadImagePlaylistService implements IUploadImagePlaylistService {
     final file = File(filePath);
     if (!file.existsSync()) {
       throw const CustomHttpException(
-          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest,);
+        ErrorMessage.FILE_NOT_EXIST,
+        HttpStatus.badRequest,
+      );
     }
 
     final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/upload');
@@ -50,7 +51,9 @@ class UploadImagePlaylistService implements IUploadImagePlaylistService {
       return data['secure_url'] as String?;
     } else {
       throw const CustomHttpException(
-          ErrorMessage.UPLOAD_FAIL, HttpStatus.badRequest,);
+        ErrorMessage.UPLOAD_FAIL,
+        HttpStatus.badRequest,
+      );
     }
   }
 }

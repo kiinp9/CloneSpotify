@@ -6,6 +6,7 @@ import 'config/jwt.config.dart';
 import 'database/postgres.dart';
 import 'database/redis.dart';
 import 'libs/sendmail/service/sendmail.dart';
+import 'log/log.dart';
 import 'security/otp.security.dart';
 
 final dotenv = DotEnv()..load();
@@ -16,6 +17,7 @@ final emailService = EmailService();
 
 void initConfigs() {
   JwtConfig.init(dotenv);
+    AppLogger.init();
 }
 
 Future<HttpServer> run(Handler handler, InternetAddress ip, int port) async {
@@ -37,7 +39,7 @@ Middleware setupMiddleware(
 ) {
   return (handler) {
     return handler
-        .use(provider<Database>((context) => database))
+        .use(provider<Database>((context) => database)) 
         .use(provider<RedisService>((context) => redisService))
         .use(provider<OtpService>((context) => otpService))
         .use(provider<EmailService>((context) => emailService));

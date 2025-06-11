@@ -5,15 +5,15 @@ services:
     image: postgres:16
     container_name: postgres_db
     restart: always
-    environment:
-      POSTGRES_DB: spotify
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 6901ag
+    env_file:
+      - .env
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data 
-      - ./init_db.sh:/docker-entrypoint-initdb.d/init_db.sh 
+      - postgres_data:/var/lib/postgresql/data
+      - ./init_db.sh:/docker-entrypoint-initdb.d/init_db.sh
+    environment:
+      TZ: Asia/Ho_Chi_Minh
     networks:
       - my_network
 
@@ -25,6 +25,8 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    environment:
+      TZ: Asia/Ho_Chi_Minh
     networks:
       - my_network
 
@@ -35,23 +37,20 @@ services:
     depends_on:
       - db
       - redis
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Ho_Chi_Minh
     ports:
       - "8080:8080"
     working_dir: /app
-    environment:
-      DB_HOST: db
-      DB_PORT: 5432
-      DB_NAME: spotify
-      DB_USERNAME: postgres
-      DB_PASSWORD: 6901ag
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
     volumes:
-      - ./.env:/app/.env     # <-- Gắn mount file .env đúng vị trí trong service
+      
+      - ./.env:/app/.env
     command: ["/app/build/bin/server"]
     networks:
       - my_network
-
+    tty: true 
 networks:
   my_network:
 

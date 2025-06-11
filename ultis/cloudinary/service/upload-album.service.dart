@@ -20,15 +20,18 @@ class UploadAlbumService implements IUploadAlbumService {
   late final String apiKey = env['CLOUDINARY_API_KEY'] ?? '';
   late final String uploadPreset = env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
 
-
   @override
   Future<Map<String, dynamic>> uploadAlbumFromFolder(
-      String albumFolderPath, String avatarPath,) async {
+    String albumFolderPath,
+    String avatarPath,
+  ) async {
     final albumDirectory = Directory(albumFolderPath);
 
     if (!albumDirectory.existsSync()) {
       throw const CustomHttpException(
-          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest,);
+        ErrorMessage.FILE_NOT_EXIST,
+        HttpStatus.badRequest,
+      );
     }
 
     final albumName = albumDirectory.path.split(Platform.pathSeparator).last;
@@ -70,8 +73,7 @@ class UploadAlbumService implements IUploadAlbumService {
 
     for (final songDir in songFolders) {
       final songName = songDir.path.split(Platform.pathSeparator).last;
-      final files =
-          songDir.listSync().whereType<File>().toList();
+      final files = songDir.listSync().whereType<File>().toList();
       albumUploads['songs'][songName] = {
         'music': <String?>[],
       };
@@ -106,11 +108,15 @@ class UploadAlbumService implements IUploadAlbumService {
   }
 
   Future<String?> _uploadFileToSpecificFolder(
-      String filePath, String folder,) async {
+    String filePath,
+    String folder,
+  ) async {
     final file = File(filePath);
     if (!file.existsSync()) {
       throw const CustomHttpException(
-          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest,);
+        ErrorMessage.FILE_NOT_EXIST,
+        HttpStatus.badRequest,
+      );
     }
 
     final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/upload');
@@ -129,7 +135,9 @@ class UploadAlbumService implements IUploadAlbumService {
       return data['secure_url'] as String?;
     } else {
       throw const CustomHttpException(
-          ErrorMessage.UPLOAD_FAIL, HttpStatus.badRequest,);
+        ErrorMessage.UPLOAD_FAIL,
+        HttpStatus.badRequest,
+      );
     }
   }
 }

@@ -27,9 +27,10 @@ abstract class IFileService {
   /// [width] Chiều rộng của ảnh
   /// [height] Chiều cao của ảnh
   /// [color] Màu sắc (mặc định là trắng)
-  Future<void> createBlankImage(
-      {required String path,
-      required int width,
-      required int height,
-      int color = 0xFFFFFFFF,});
+  Future<void> createBlankImage({
+    required String path,
+    required int width,
+    required int height,
+    int color = 0xFFFFFFFF,
+  });
 }

@@ -17,7 +17,6 @@ class UploadMusicService implements IUploadMusicService {
   late final String apiKey = env['CLOUDINARY_API_KEY'] ?? '';
   late final String uploadPreset = env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
 
-
   String _getFolderByFileType(String filePath) {
     final extension = filePath.split('.').last.toLowerCase();
 
@@ -41,11 +40,15 @@ class UploadMusicService implements IUploadMusicService {
 
   /// Upload 1 file vào thư mục chỉ định (ví dụ: album1/song1/music)
   Future<String?> _uploadFileToSpecificFolder(
-      String filePath, String cloudFolder,) async {
+    String filePath,
+    String cloudFolder,
+  ) async {
     final file = File(filePath);
     if (!file.existsSync()) {
       throw const CustomHttpException(
-          ErrorMessage.FILE_NOT_EXIST, HttpStatus.badRequest,);
+        ErrorMessage.FILE_NOT_EXIST,
+        HttpStatus.badRequest,
+      );
     }
 
     final url = Uri.parse('https://api.cloudinary.com/v1_1/$cloudName/upload');
@@ -70,7 +73,9 @@ class UploadMusicService implements IUploadMusicService {
       }
     } else {
       throw const CustomHttpException(
-          ErrorMessage.UPLOAD_FAIL, HttpStatus.badRequest,);
+        ErrorMessage.UPLOAD_FAIL,
+        HttpStatus.badRequest,
+      );
     }
 
     return null;
@@ -78,7 +83,8 @@ class UploadMusicService implements IUploadMusicService {
 
   /// Upload nhiều file từ danh sách đường dẫn và phân loại theo folder
   Future<Map<String, List<String?>>> uploadMultipleFiles(
-      List<String> filePaths,) async {
+    List<String> filePaths,
+  ) async {
     final categorizedUploads = <String, List<String?>>{
       'music': [],
       'images': [],

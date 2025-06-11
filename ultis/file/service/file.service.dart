@@ -26,19 +26,22 @@ class FileService implements IFileService {
 
   @override
   // ignore: strict_raw_type
-  Future createBlankImage(
-      {required String path,
-      required int width,
-      required int height,
-      int color = 0xFFFFFFFF,}) async {
+  Future createBlankImage({
+    required String path,
+    required int width,
+    required int height,
+    int color = 0xFFFFFFFF,
+  }) async {
     final image = img.Image(width: width, height: height);
-    img.fill(image,
-        color: img.ColorRgba8(
-            (color >> 16) & 0xFF, // Red
-            (color >> 8) & 0xFF, // Green
-            color & 0xFF, // Blue
-            (color >> 24) & 0xFF, // Alpha
-            ),);
+    img.fill(
+      image,
+      color: img.ColorRgba8(
+        (color >> 16) & 0xFF, // Red
+        (color >> 8) & 0xFF, // Green
+        color & 0xFF, // Blue
+        (color >> 24) & 0xFF, // Alpha
+      ),
+    );
 
     final pngBytes = img.encodePng(image);
     await File(path).writeAsBytes(pngBytes);

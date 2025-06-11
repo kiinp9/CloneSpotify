@@ -6,11 +6,11 @@ import 'package:postgres/postgres.dart';
 import '../constant/config.message.dart';
 import '../database/postgres.dart';
 import '../exception/config.exception.dart';
-import '../libs/cloudinary/service/upload-music.service.dart';
+import '../ultis/cloudinary/service/upload-music.service.dart';
 import '../model/author.dart';
 import '../model/category.dart';
 import '../model/music.dart';
-import '../ultis/ffmpeg_helper.dart';
+import '../libs/ffmpeg_helper.dart';
 
 abstract class IMusicRepo {
   Future<int?> uploadMusic(

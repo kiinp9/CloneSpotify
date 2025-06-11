@@ -15,8 +15,8 @@ import '../database/iredis.dart';
 import '../database/postgres.dart';
 import '../database/redis.dart';
 
-import '../libs/cloudinary/service/upload-album.service.dart';
-import '../libs/cloudinary/service/upload-music.service.dart';
+import '../ultis/cloudinary/service/upload-album.service.dart';
+import '../ultis/cloudinary/service/upload-music.service.dart';
 import '../log/log.dart';
 
 import '../main.dart';

@@ -8,7 +8,7 @@ import 'package:path/path.dart' as path;
 import '../../../constant/config.message.dart';
 import '../../../exception/config.exception.dart';
 import '../../../model/music.dart';
-import '../../file/interface/file.interface.dart';
+import '../../../ultis/file/interface/file.interface.dart';
 
 import '../interface/generate_image_playlist_interface.dart';
 

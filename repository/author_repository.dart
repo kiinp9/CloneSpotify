@@ -5,7 +5,7 @@ import 'package:postgres/postgres.dart';
 import '../constant/config.message.dart';
 import '../database/postgres.dart';
 import '../exception/config.exception.dart';
-import '../libs/cloudinary/service/upload-avatarAuthor.dart';
+import '../ultis/cloudinary/service/upload-avatarAuthor.dart';
 import '../model/album.dart';
 import '../model/author.dart';
 import '../model/music.dart';
