@@ -38,4 +38,9 @@ class AuthorController {
     final author = await _authorRepository.deleteAuthorById(authorId);
     return author;
   }
+
+  Future<List<Author>> getListAuthor() async {
+    final author = await _authorRepository.getListAuthor();
+    return author;
+  }
 }

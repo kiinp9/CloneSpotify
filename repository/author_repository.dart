@@ -20,6 +20,7 @@ abstract class IAuthorRepo {
     Map<String, dynamic> updateFields,
   );
   Future<Author> deleteAuthorById(int authorId);
+  Future<List<Author>> getListAuthor();
 }
 
 class AuthorRepository implements IAuthorRepo {
@@ -400,6 +401,40 @@ RETURNING id,name,description,avatarUrl,createdAt,updatedAt,followingCount
       );
 
       return author;
+    } catch (e) {
+      if (e is CustomHttpException) {
+        rethrow;
+      }
+      throw const CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<List<Author>> getListAuthor() async {
+    try {
+      final result = await _db.executor.execute(
+        Sql.named('''SELECT * FROM author'''),
+      );
+
+      if (result.isEmpty) {
+        return [];
+      }
+      final authors = result.map((row) {
+        return Author(
+          id: row[0]! as int,
+          name: row[1]! as String,
+          description: row[2]! as String,
+          avatarUrl: row[3] as String?,
+          followingCount: row[4]! as int,
+          createdAt: _parseDate(row[5]),
+          updatedAt: _parseDate(row[6]),
+        );
+      }).toList();
+
+      return authors;
     } catch (e) {
       if (e is CustomHttpException) {
         rethrow;
