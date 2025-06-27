@@ -22,7 +22,6 @@ dependencies:
   postgres: ^3.5.4
   redis: ^4.0.0
   strings: ^3.2.0
-  dart_openapi_codegen: ^5.0.0
   json_annotation: ^4.8.1
 
 dev_dependencies:
