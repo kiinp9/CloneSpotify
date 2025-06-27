@@ -1,0 +1,49 @@
+openapi: 3.0.0
+info:
+  title: CloneSpotify API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+paths:
+  /app/auth/login:
+    post:
+      summary: Người dùng đăng nhập
+      description: Đăng nhập bằng email, username hoặc identifier + password
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifier
+                - password
+              properties:
+                identifier:
+                  type: string
+                  description: Email, username hoặc identifier
+                  example: user@example.com
+                password:
+                  type: string
+                  description: Mật khẩu của người dùng
+                  example: mysecretpassword
+      responses:
+        '200':
+          description: Đăng nhập thành công
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+                    description: Thông tin người dùng đã đăng nhập
+                  token:
+                    type: string
+                    description: JWT token được trả về
+        '400':
+          description: Thiếu email/username hoặc mật khẩu
+        '405':
+          description: Phương thức không được hỗ trợ
+        '500':
+          description: Lỗi hệ thống

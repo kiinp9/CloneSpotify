@@ -26,41 +26,59 @@ class MusicController {
     try {
       if (isNullOrEmpty(music.title)) {
         throw const CustomHttpException(
-            ErrorMessage.EMPTY_TITLE, HttpStatus.badRequest,);
+          ErrorMessage.EMPTY_TITLE,
+          HttpStatus.badRequest,
+        );
       }
       if (isNullOrEmpty(music.description)) {
         throw const CustomHttpException(
-            ErrorMessage.EMPTY_DESCRIPTION, HttpStatus.badRequest,);
+          ErrorMessage.EMPTY_DESCRIPTION,
+          HttpStatus.badRequest,
+        );
       }
       if (isNullOrEmpty(author.name)) {
         throw const CustomHttpException(
-            ErrorMessage.EMPTY_AUTHOR_NAME, HttpStatus.badRequest,);
+          ErrorMessage.EMPTY_AUTHOR_NAME,
+          HttpStatus.badRequest,
+        );
       }
       if (isNullOrEmpty(author.description)) {
         throw const CustomHttpException(
-            ErrorMessage.EMPTY_AUTHOR_DESC, HttpStatus.badRequest,);
+          ErrorMessage.EMPTY_AUTHOR_DESC,
+          HttpStatus.badRequest,
+        );
       }
       if (isNullOrEmpty(author.avatarUrl)) {
         throw const CustomHttpException(
-            ErrorMessage.EMPTY_AUTHOR_AVATAR, HttpStatus.badRequest,);
+          ErrorMessage.EMPTY_AUTHOR_AVATAR,
+          HttpStatus.badRequest,
+        );
       }
       if (isNullOrEmpty(musicFilePath)) {
         throw const CustomHttpException(
-            ErrorMessage.INVALID_MUSIC_PATH, HttpStatus.badRequest,);
+          ErrorMessage.INVALID_MUSIC_PATH,
+          HttpStatus.badRequest,
+        );
       }
       if (isNullOrEmpty(imageFilePath)) {
         throw const CustomHttpException(
-            ErrorMessage.INVALID_IMAGE_PATH, HttpStatus.badRequest,);
+          ErrorMessage.INVALID_IMAGE_PATH,
+          HttpStatus.badRequest,
+        );
       }
 
       for (final category in categories) {
         if (isNullOrEmpty(category.name)) {
           throw const CustomHttpException(
-              ErrorMessage.EMPTY_CATEGORY_NAME, HttpStatus.badRequest,);
+            ErrorMessage.EMPTY_CATEGORY_NAME,
+            HttpStatus.badRequest,
+          );
         }
         if (isNullOrEmpty(category.description)) {
           throw const CustomHttpException(
-              ErrorMessage.EMPTY_CATEGORY_DESCRIPTION, HttpStatus.badRequest,);
+            ErrorMessage.EMPTY_CATEGORY_DESCRIPTION,
+            HttpStatus.badRequest,
+          );
         }
       }
 
@@ -75,7 +93,9 @@ class MusicController {
 
       if (musicId == null) {
         throw const CustomHttpException(
-            ErrorMessage.SAVED_DB_FAIL, HttpStatus.internalServerError,);
+          ErrorMessage.SAVED_DB_FAIL,
+          HttpStatus.internalServerError,
+        );
       }
 
       return musicId;
@@ -83,8 +103,12 @@ class MusicController {
       if (e is CustomHttpException) {
         return Future.error(e);
       }
-      return Future.error(CustomHttpException(
-          'Lỗi máy chủ: $e', HttpStatus.internalServerError,),);
+      return Future.error(
+        CustomHttpException(
+          'Lỗi máy chủ: $e',
+          HttpStatus.internalServerError,
+        ),
+      );
     }
   }
 
@@ -139,13 +163,20 @@ class MusicController {
   }
 
   Future<Music> updateMusic(
-      int musicId, Map<String, dynamic> updateFields,) async {
+    int musicId,
+    Map<String, dynamic> updateFields,
+  ) async {
     final music = await _musicRepository.updateMusic(musicId, updateFields);
     return music;
   }
 
   Future<Music> deleteMusic(int musicId) async {
     final music = await _musicRepository.deleteMusic(musicId);
+    return music;
+  }
+
+  Future<Music> deleteSongFromAlbum(int musicId) async {
+    final music = await _musicRepository.deleteSongFromAlbum(musicId);
     return music;
   }
 }

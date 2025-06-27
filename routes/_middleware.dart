@@ -77,7 +77,8 @@ Handler middleware(Handler handler) {
       .use(provider<HistoryController>((context) => historyController))
       .use(provider<LikeMusicController>((context) => likeMusicController))
       .use(
-          provider<FollowAuthorController>((context) => followAuthorController),)
+        provider<FollowAuthorController>((context) => followAuthorController),
+      )
       .use(provider<SearchController>((context) => searchController))
       .use(provider<UploadMusicService>((context) => uploadMusicService))
       .use(provider<UploadAlbumService>((context) => uploadAlbumService))
@@ -93,61 +94,143 @@ Middleware injectionController(JwtService jwtService) {
         .use(provider<JwtService>((context) => jwtService))
         .use(provider<UploadMusicService>((context) => UploadMusicService()))
         .use(provider<UploadAlbumService>((context) => UploadAlbumService()))
-        .use(provider<UserRepository>((context) {
-      final db = context.read<Database>();
-      return UserRepository(db);
-    }),).use(provider<UserController>((context) {
-      final userRepository = context.read<UserRepository>();
-      return UserController(userRepository);
-    }),).use(provider<MusicRepository>((context) {
-      final db = context.read<Database>();
-      return MusicRepository(db);
-    }),).use(provider<MusicController>((context) {
-      final musicRepository = context.read<MusicRepository>();
-      return MusicController(musicRepository, redisService);
-    }),).use(provider<AuthorController>((context) {
-      final authorRepository = context.read<AuthorRepository>();
-      return AuthorController(authorRepository);
-    }),).use(provider<CategoryController>((context) {
-      final categoryRepository = context.read<CategoryRepository>();
-      return CategoryController(categoryRepository);
-    }),).use(provider<AlbumController>((context) {
-      final albumRepository = context.read<AlbumRepository>();
-      return AlbumController(albumRepository);
-    }),).use(provider<PlaylistController>((context) {
-      final playlistRepository = context.read<PlaylistRepository>();
-      return PlaylistController(playlistRepository, redisService);
-    }),).use(provider<HistoryController>((context) {
-      final historyRepository = context.read<HistoryRepository>();
-      return HistoryController(historyRepository);
-    }),).use(provider<LikeMusicController>((context) {
-      final likeMusicRepository = context.read<LikeMusicRepository>();
-      return LikeMusicController(likeMusicRepository);
-    }),).use(provider<FollowAuthorController>((context) {
-      final followAuthorRepository = context.read<FollowAuthorRepository>();
-      return FollowAuthorController(followAuthorRepository);
-    }),).use(provider<SearchController>((context) {
-      final searchRepository = context.read<SearchRepository>();
-      return SearchController(searchRepository);
-    }),).use(loggingMiddleware());
+        .use(
+      provider<UserRepository>((context) {
+        final db = context.read<Database>();
+        return UserRepository(db);
+      }),
+    ).use(
+      provider<UserController>((context) {
+        final userRepository = context.read<UserRepository>();
+        return UserController(userRepository);
+      }),
+    ).use(
+      provider<MusicRepository>((context) {
+        final db = context.read<Database>();
+        return MusicRepository(db);
+      }),
+    ).use(
+      provider<MusicController>((context) {
+        final musicRepository = context.read<MusicRepository>();
+        return MusicController(musicRepository, redisService);
+      }),
+    ).use(
+      provider<AuthorController>((context) {
+        final authorRepository = context.read<AuthorRepository>();
+        return AuthorController(authorRepository);
+      }),
+    ).use(
+      provider<CategoryController>((context) {
+        final categoryRepository = context.read<CategoryRepository>();
+        return CategoryController(categoryRepository);
+      }),
+    ).use(
+      provider<AlbumController>((context) {
+        final albumRepository = context.read<AlbumRepository>();
+        return AlbumController(albumRepository);
+      }),
+    ).use(
+      provider<PlaylistController>((context) {
+        final playlistRepository = context.read<PlaylistRepository>();
+        return PlaylistController(playlistRepository, redisService);
+      }),
+    ).use(
+      provider<HistoryController>((context) {
+        final historyRepository = context.read<HistoryRepository>();
+        return HistoryController(historyRepository);
+      }),
+    ).use(
+      provider<LikeMusicController>((context) {
+        final likeMusicRepository = context.read<LikeMusicRepository>();
+        return LikeMusicController(likeMusicRepository);
+      }),
+    ).use(
+      provider<FollowAuthorController>((context) {
+        final followAuthorRepository = context.read<FollowAuthorRepository>();
+        return FollowAuthorController(followAuthorRepository);
+      }),
+    ).use(
+      provider<SearchController>((context) {
+        final searchRepository = context.read<SearchRepository>();
+        return SearchController(searchRepository);
+      }),
+    ).use(loggingMiddleware());
   };
 }
 
 Middleware createJwtMiddleware(
-    JwtService jwtService, IRedisService redisService,) {
+  JwtService jwtService,
+  IRedisService redisService,
+) {
   return (handler) {
     return (context) async {
       try {
-        final url = context.request.url.toString();
-        if (url.contains('auth/register') ||
-            url.contains('auth/login') ||
-            url.contains('auth/forgot-password') ||
-            url.contains('auth/check-otp') ||
-            url.contains('auth/reset-password')) {
-          // Bỏ qua xác thực JWT cho các endpoint công khai
+        final path = context.request.uri.path;
+        final method = context.request.method;
+
+        // HOÀN TOÀN BỎ QUA swagger, openapi, config - không cần kiểm tra gì cả
+        final swaggerPaths = [
+          '/swagger',
+          '/openapi.yaml',
+          '/config',
+        ];
+
+        for (final swaggerPath in swaggerPaths) {
+          if (path == swaggerPath || path.startsWith(swaggerPath)) {
+            return await handler(context);
+          }
+        }
+
+        // Danh sách các path được bỏ qua xác thực JWT
+        final publicPaths = [
+          '/app/auth/register',
+          '/app/auth/login',
+          '/app/auth/forgot-password',
+          '/app/auth/check-otp',
+          '/app/auth/reset-password',
+        ];
+
+        // Bỏ qua xác thực cho các path công khai
+        for (final publicPath in publicPaths) {
+          if (path.startsWith(publicPath)) {
+            return await handler(context);
+          }
+        }
+
+        // Bỏ qua xác thực cho static files
+        final staticExtensions = [
+          '.css',
+          '.js',
+          '.png',
+          '.jpg',
+          '.jpeg',
+          '.ico',
+          '.yaml',
+          '.html',
+          '.svg',
+          '.woff',
+          '.woff2',
+          '.ttf'
+        ];
+        if (staticExtensions.any((ext) => path.toLowerCase().contains(ext))) {
           return await handler(context);
         }
 
+        // Bỏ qua cho OPTIONS request (CORS preflight)
+        if (method == HttpMethod.options) {
+          return await handler(context);
+        }
+
+        // Kiểm tra nếu request yêu cầu HTML content
+        final acceptHeader = context.request.headers['accept']?.toLowerCase();
+        if (acceptHeader != null && acceptHeader.contains('text/html')) {
+          // Nếu là request HTML và không phải API endpoint thì bỏ qua JWT
+          if (!path.startsWith('/app/')) {
+            return await handler(context);
+          }
+        }
+
+        // Từ đây trở đi mới kiểm tra JWT cho các API endpoints
         final authInfo = context.request.headers['Authorization'];
         if (authInfo == null || !authInfo.startsWith('Bearer ')) {
           return Response.json(
@@ -195,8 +278,20 @@ Middleware createJwtMiddleware(
               : null,
         );
 
-        return handler(context.provide<User?>(() => user));
+        return handler(context.provide(() => user));
       } catch (e) {
+        // Chỉ log lỗi cho non-swagger paths
+        final path = context.request.uri.path;
+        final swaggerPaths = ['/swagger', '/openapi.yaml', '/config'];
+        final isSwaggerPath =
+            swaggerPaths.any((sp) => path == sp || path.startsWith(sp));
+
+        if (!isSwaggerPath) {
+          print('JWT Middleware Error: $e');
+          print('Path: $path');
+          print('Method: ${context.request.method}');
+        }
+
         return Response.json(
           statusCode: HttpStatus.unauthorized,
           body: {'message': 'Xác thực token thất bại: $e'},
@@ -214,6 +309,15 @@ Middleware loggingMiddleware() {
       final path = request.uri.toString();
       final headers = request.headers;
 
+      // HOÀN TOÀN BỎ QUA logging cho swagger paths
+      final swaggerPaths = ['/swagger', '/openapi.yaml', '/config'];
+      final isSwaggerPath = swaggerPaths
+          .any((sp) => path == sp || path.contains(sp) || path.startsWith(sp));
+
+      if (isSwaggerPath) {
+        return await handler(context);
+      }
+
       var requestBody = await request.body();
       if (requestBody.isEmpty) requestBody = '{}';
 
@@ -221,17 +325,36 @@ Middleware loggingMiddleware() {
 
       final response = await handler(context);
 
-      final responseBody = await response.body();
-      final newResponse = response.copyWith(body: responseBody);
+      try {
+        final responseBody = await response.body();
+        final newResponse = response.copyWith(body: responseBody);
 
-      AppLogger.logResponse(
+        // Chỉ parse JSON nếu response body không rỗng và có thể là JSON
+        dynamic parsedBody;
+        if (responseBody.isNotEmpty) {
+          try {
+            parsedBody = jsonDecode(responseBody);
+          } catch (e) {
+            // Nếu không parse được JSON thì để nguyên string
+            parsedBody = responseBody;
+          }
+        } else {
+          parsedBody = "";
+        }
+
+        AppLogger.logResponse(
           method,
           path,
           response.statusCode,
-          jsonDecode(responseBody.isNotEmpty ? responseBody : '""'),
-          response.headers,);
+          parsedBody,
+          response.headers,
+        );
 
-      return newResponse;
+        return newResponse;
+      } catch (e) {
+        print('Logging error: $e');
+        return response;
+      }
     };
   };
 }

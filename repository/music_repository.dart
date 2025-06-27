@@ -28,6 +28,7 @@ abstract class IMusicRepo {
   Future<Music?> nextMusic(int currentMusicId);
   Future<Music> updateMusic(int musicId, Map<String, dynamic> updateField);
   Future<Music> deleteMusic(int musicId);
+  Future<Music> deleteSongFromAlbum(int musicId);
 }
 
 class MusicRepository implements IMusicRepo {
@@ -804,6 +805,55 @@ RETURNING id,title,description,broadcastTime,linkUrlMusic,createdAt,updatedAt,im
       if (e is CustomHttpException) {
         rethrow;
       }
+      throw const CustomHttpException(
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
+    }
+  }
+
+  @override
+  Future<Music> deleteSongFromAlbum(int musicId) async {
+    try {
+      final music = await _db.executor.execute(
+        Sql.named('''SELECT * FROM music'''),
+        parameters: {
+          'id': musicId,
+        },
+      );
+
+      if (music.isEmpty) {
+        throw const CustomHttpException(
+          ErrorMessage.MUSIC_NOT_FOUND,
+          HttpStatus.notFound,
+        );
+      }
+      final musicRow = music.first;
+
+      await _db.executor.execute(
+        Sql.named('''
+      UPDATE music
+       SET albumId = NULL, updatedAt = NOW() where id = @id
+       '''),
+        parameters: {
+          'id': musicId,
+        },
+      );
+      return Music(
+        id: musicRow[0]! as int,
+        title: musicRow[1]! as String,
+        description: musicRow[2]! as String,
+        broadcastTime: musicRow[3]! as int,
+        linkUrlMusic: musicRow[4]! as String,
+        createdAt: _parseDate(musicRow[5]),
+        updatedAt: _parseDate(musicRow[6]),
+        imageUrl: musicRow[7]! as String,
+        listenCount: musicRow[8]! as int,
+        nation: musicRow[9]! as String,
+      );
+    } catch (e) {
+      if (e is CustomHttpException) rethrow;
+
       throw const CustomHttpException(
         ErrorMessageSQL.SQL_QUERY_ERROR,
         HttpStatus.internalServerError,
