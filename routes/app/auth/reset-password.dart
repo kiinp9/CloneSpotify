@@ -9,6 +9,7 @@ import '../../../model/roles.dart';
 import '../../../model/users.dart';
 import '../../../security/reset-password-token.security.dart';
 
+//PUT
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method.value != 'PUT') {
     return AppResponse()

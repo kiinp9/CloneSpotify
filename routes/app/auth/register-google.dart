@@ -9,6 +9,7 @@ import '../../../model/users.dart';
 import '../../../security/google.security.dart';
 import '../../../security/jwt.security.dart';
 
+//POST
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method.value != 'POST') {
     return AppResponse()
@@ -26,7 +27,8 @@ Future<Response> onRequest(RequestContext context) async {
 
   try {
     final googleUser = await GoogleSecurity.verifyGoogleToken(
-        body['idToken']?.toString() ?? '',);
+      body['idToken']?.toString() ?? '',
+    );
 
     if (googleUser == null) {
       return AppResponse()

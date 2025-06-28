@@ -23,6 +23,8 @@ dependencies:
   redis: ^4.0.0
   strings: ^3.2.0
   json_annotation: ^4.8.1
+  watcher: ^1.1.2
+  analyzer: ^7.5.2
 
 dev_dependencies:
   mocktail: ^1.0.3

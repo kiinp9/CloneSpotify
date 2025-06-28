@@ -29,7 +29,9 @@ class UserRepository implements IUserRepo {
     final existingUser = await findUserByEmail(user.email);
     if (existingUser != null) {
       throw const CustomHttpException(
-          ErrorMessage.EMAIL_ALREADY_EXISTS, HttpStatus.badRequest,);
+        ErrorMessage.EMAIL_ALREADY_EXISTS,
+        HttpStatus.badRequest,
+      );
     }
 
     final result = await _db.executor.execute(
@@ -57,13 +59,17 @@ class UserRepository implements IUserRepo {
 
     if (result.isEmpty || result.first.isEmpty) {
       throw const CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError,);
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
     }
 
     final insertedId = result.first[0];
     if (insertedId == null) {
       throw const CustomHttpException(
-          ErrorMessageSQL.SQL_QUERY_ERROR, HttpStatus.internalServerError,);
+        ErrorMessageSQL.SQL_QUERY_ERROR,
+        HttpStatus.internalServerError,
+      );
     }
 
     return insertedId as int;
@@ -174,8 +180,10 @@ class UserRepository implements IUserRepo {
   }
 
   @override
-  Future<User?> findUserByUserName(String userName,
-      {bool showPass = false,}) async {
+  Future<User?> findUserByUserName(
+    String userName, {
+    bool showPass = false,
+  }) async {
     final result = await _db.executor.execute(
       Sql.named('''
       SELECT * FROM users u
@@ -293,8 +301,11 @@ WHERE id = @roleId
     );
   }
 
-  Future<User?> updatePassword(int id, String newPassword,
-      {bool showPass = false,}) async {
+  Future<User?> updatePassword(
+    int id,
+    String newPassword, {
+    bool showPass = false,
+  }) async {
     final result = await _db.executor.execute(
       Sql.named('''
       UPDATE users 

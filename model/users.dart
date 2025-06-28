@@ -3,7 +3,8 @@ import 'roles.dart';
 
 class User {
   User({
-    required this.email, this.id,
+    required this.email,
+    this.id,
     this.fullName,
     this.userName,
     this.password,
@@ -14,6 +15,7 @@ class User {
     this.createdAt,
     this.updatedAt,
     this.GoogleStatus,
+    //this.avatarUserUrl,
     this.role,
   });
 
@@ -30,6 +32,7 @@ class User {
   GenderE gender;
   DateTime? birthday;
   int? GoogleStatus;
+  //String? avatarUserUrl;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -44,6 +47,7 @@ class User {
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
         'GoogleStatus': GoogleStatus,
+        //'avatarUserUrl': avatarUserUrl,
         'role': role?.toJson(),
       };
   User copyWith({
@@ -63,6 +67,7 @@ class User {
       createdAt: createdAt,
       updatedAt: updatedAt,
       GoogleStatus: GoogleStatus,
+      //avatarUserUrl: avatarUserUrl,
       role: role,
     );
   }

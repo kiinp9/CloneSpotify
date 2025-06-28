@@ -164,23 +164,11 @@ Middleware createJwtMiddleware(
 ) {
   return (handler) {
     return (context) async {
+      // Khai báo path ở đây để có thể sử dụng trong catch block
+      final path = context.request.uri.path;
+      final method = context.request.method;
+
       try {
-        final path = context.request.uri.path;
-        final method = context.request.method;
-
-        // HOÀN TOÀN BỎ QUA swagger, openapi, config - không cần kiểm tra gì cả
-        final swaggerPaths = [
-          '/swagger',
-          '/openapi.yaml',
-          '/config',
-        ];
-
-        for (final swaggerPath in swaggerPaths) {
-          if (path == swaggerPath || path.startsWith(swaggerPath)) {
-            return await handler(context);
-          }
-        }
-
         // Danh sách các path được bỏ qua xác thực JWT
         final publicPaths = [
           '/app/auth/register',
@@ -270,7 +258,7 @@ Middleware createJwtMiddleware(
         }
 
         final user = User(
-          id: userId,
+          id: userData['id'] as int?,
           email: userData['email']?.toString() ?? '',
           roleId: userData['roleId'] as int?,
           role: userData['roleName'] is String
@@ -280,17 +268,9 @@ Middleware createJwtMiddleware(
 
         return handler(context.provide(() => user));
       } catch (e) {
-        // Chỉ log lỗi cho non-swagger paths
-        final path = context.request.uri.path;
-        final swaggerPaths = ['/swagger', '/openapi.yaml', '/config'];
-        final isSwaggerPath =
-            swaggerPaths.any((sp) => path == sp || path.startsWith(sp));
-
-        if (!isSwaggerPath) {
-          print('JWT Middleware Error: $e');
-          print('Path: $path');
-          print('Method: ${context.request.method}');
-        }
+        print('JWT Middleware Error: $e');
+        print('Path: $path');
+        print('Method: ${method.name}');
 
         return Response.json(
           statusCode: HttpStatus.unauthorized,
@@ -309,33 +289,37 @@ Middleware loggingMiddleware() {
       final path = request.uri.toString();
       final headers = request.headers;
 
-      // HOÀN TOÀN BỎ QUA logging cho swagger paths
-      final swaggerPaths = ['/swagger', '/openapi.yaml', '/config'];
-      final isSwaggerPath = swaggerPaths
-          .any((sp) => path == sp || path.contains(sp) || path.startsWith(sp));
-
-      if (isSwaggerPath) {
-        return await handler(context);
+      // Đọc body một cách an toàn
+      String requestBody = '{}';
+      try {
+        final bodyContent = await request.body();
+        requestBody = bodyContent.isEmpty ? '{}' : bodyContent;
+      } catch (e) {
+        requestBody = '{}';
       }
 
-      var requestBody = await request.body();
-      if (requestBody.isEmpty) requestBody = '{}';
-
+      // Log request
       AppLogger.logRequest(method, path, headers, requestBody);
 
-      final response = await handler(context);
+      Response response;
+      try {
+        response = await handler(context);
+      } catch (e, stackTrace) {
+        AppLogger.logError('Handler error: $e', e, stackTrace);
+        rethrow;
+      }
 
+      // Log response
       try {
         final responseBody = await response.body();
         final newResponse = response.copyWith(body: responseBody);
 
-        // Chỉ parse JSON nếu response body không rỗng và có thể là JSON
+        // Parse response body safely
         dynamic parsedBody;
         if (responseBody.isNotEmpty) {
           try {
             parsedBody = jsonDecode(responseBody);
           } catch (e) {
-            // Nếu không parse được JSON thì để nguyên string
             parsedBody = responseBody;
           }
         } else {
@@ -352,7 +336,7 @@ Middleware loggingMiddleware() {
 
         return newResponse;
       } catch (e) {
-        print('Logging error: $e');
+        AppLogger.logError('Response logging error: $e');
         return response;
       }
     };

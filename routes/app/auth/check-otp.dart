@@ -10,6 +10,7 @@ import '../../../model/response.dart';
 import '../../../security/otp.security.dart';
 import '../../../security/reset-password-token.security.dart';
 
+//POST
 Future<Response> onRequest(RequestContext context) async {
   if (context.request.method.value != 'POST') {
     return AppResponse()
@@ -39,7 +40,9 @@ Future<Response> onRequest(RequestContext context) async {
     final user = await userController.findUserByEmail(email);
     if (user == null) {
       throw const CustomHttpException(
-          ErrorMessage.USER_NOT_FOUND, HttpStatus.badRequest,);
+        ErrorMessage.USER_NOT_FOUND,
+        HttpStatus.badRequest,
+      );
     }
     final token = generateResetPassTokenJwt(user);
 

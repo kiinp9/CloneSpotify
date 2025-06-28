@@ -1,4 +1,3 @@
-// File: routes/swagger/_middleware.dart
 import 'package:dart_frog/dart_frog.dart';
 
 Handler middleware(Handler handler) {
@@ -12,12 +11,11 @@ Middleware swaggerMiddleware() {
       final path = context.request.uri.path;
       final method = context.request.method.name;
 
-      // Log đơn giản
+      // Log đơn giản cho swagger
       print('📋 Swagger UI: $method $path');
 
       // Thêm CORS headers cho swagger
       final response = await handler(context);
-
       return response.copyWith(
         headers: {
           ...response.headers,

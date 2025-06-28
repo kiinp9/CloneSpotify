@@ -12,18 +12,41 @@
       overflow: -moz-scrollbars-vertical;
       overflow-y: scroll;
     }
+    
     *, *:before, *:after {
       box-sizing: inherit;
     }
+    
     body {
       margin: 0;
       background: #fafafa;
     }
+    
     .swagger-ui .topbar {
       background-color: #1db954;
     }
+    
     .swagger-ui .topbar .download-url-wrapper {
       display: none;
+    }
+    
+    /* Căn chỉnh responses table */
+    .swagger-ui .responses-table td {
+      vertical-align: middle !important;
+      padding: 10px 15px !important;
+    }
+    
+    .swagger-ui .responses-table th {
+      vertical-align: middle !important;
+      padding: 10px 15px !important;
+    }
+    
+    /* Đảm bảo text trong cells được căn giữa theo chiều dọc */
+    .swagger-ui .response-col_status,
+    .swagger-ui .response-col_description,
+    .swagger-ui .response-col_links {
+      vertical-align: middle !important;
+      line-height: 1.2 !important;
     }
   </style>
 </head>
@@ -38,7 +61,7 @@
       
       // Begin Swagger UI call region
       const ui = SwaggerUIBundle({
-      url: "/swagger/openapi.yaml",
+        url: "/swagger/openapi.yaml",
         dom_id: '#swagger-ui',
         deepLinking: true,
         presets: [

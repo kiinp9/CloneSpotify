@@ -10,6 +10,7 @@ import '../../../libs/sendmail/service/sendmail.dart';
 import '../../../model/response.dart';
 import '../../../security/otp.security.dart';
 
+//POST
 Future<Response> onRequest(RequestContext context) async {
   final redisService = RedisService();
   final otpService = OtpService(redisService);
