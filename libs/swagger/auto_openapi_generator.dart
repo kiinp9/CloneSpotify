@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:convert';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:yaml/yaml.dart';
 
 import '../../model/router_infor.dart';
 import '../../ultis/helpers/schema_helper.dart';
@@ -162,7 +161,7 @@ class EnhancedAutoOpenAPIGenerator {
     // Thêm security nếu cần auth
     if (route.requiresAuth) {
       operation['security'] = [
-        {'bearerAuth': []}
+        {'bearerAuth': <dynamic>[]}
       ];
     }
 
@@ -225,7 +224,7 @@ class EnhancedAutoOpenAPIGenerator {
 
   String _getRequestBodySchemaName(RouteInfo route) {
     // Sử dụng schema có sẵn nếu có
-    final defaultSchemas = SchemaHelper.getDefaultSchemas();
+    SchemaHelper.getDefaultSchemas();
 
     if (route.apiPath.contains('/auth/register')) return 'AuthRegisterRequest';
     if (route.apiPath.contains('/auth/login')) return 'AuthLoginRequest';
